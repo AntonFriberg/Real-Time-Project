@@ -72,10 +72,11 @@ public class ClientReceive extends Thread {
 				bytesLeft -= status;
 			}
 		} while (status >= 0);
+		
 		sock.close();
 
 		System.out.println("Received image data (" + bytesRead + " bytes).");
-		monitor.putImate(jpeg);
+		monitor.putImage(jpeg);
 	}
 
 	/**

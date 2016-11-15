@@ -7,14 +7,15 @@ public class ClientMonitor {
 	public ClientMonitor(){
 		hasChanged = false;
 	}
-	public synchronized void putImate(byte[] jpeg){
+	public synchronized void putImage(byte[] jpeg){
 		this.jpeg = jpeg;
 		hasChanged = true;
 		notifyAll();
 	}
 	
 	public synchronized byte[] getImage() throws InterruptedException{
-		while(!hasChanged) wait();
+		while(!hasChanged){ wait();}
+		hasChanged = false;
 		return jpeg;
 	}
 }

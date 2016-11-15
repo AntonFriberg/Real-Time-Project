@@ -19,6 +19,7 @@ public class JPEGHTTPDemo {
 //		Client c = new Client();
 //		c.start();
 		GUIController gui = new GUIController("localhost","6077");
+		gui.start();
 	}
 	
 	private static class Server1 extends Thread {
