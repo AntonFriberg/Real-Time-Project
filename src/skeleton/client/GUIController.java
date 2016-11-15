@@ -31,38 +31,41 @@ public class GUIController extends Thread {
 			System.out.println("Run");
 		}
 	}
+
 }
 
-class ImagePanel extends JPanel {
-	ImageIcon icon;
+	
+	class ImagePanel extends JPanel {
+		ImageIcon icon;
 
-	public ImagePanel() {
-		super();
-		icon = new ImageIcon();
-		JLabel label = new JLabel(icon);
-		add(label, BorderLayout.CENTER);
-		this.setSize(200, 200);
+		public ImagePanel() {
+			super();
+			icon = new ImageIcon();
+			JLabel label = new JLabel(icon);
+			add(label, BorderLayout.CENTER);
+			this.setSize(200, 200);
+		}
+
+		public void refresh(byte[] data) {
+			Image theImage = getToolkit().createImage(data);
+			getToolkit().prepareImage(theImage, -1, -1, null);
+			icon.setImage(theImage);
+			icon.paintIcon(this, this.getGraphics(), 5, 5);
+		}
 	}
 
-	public void refresh(byte[] data) {
-		Image theImage = getToolkit().createImage(data);
-		getToolkit().prepareImage(theImage, -1, -1, null);
-		icon.setImage(theImage);
-		icon.paintIcon(this, this.getGraphics(), 5, 5);
-	}
-}
-class ButtonHandler implements ActionListener {
+	class ButtonHandler implements ActionListener {
 
-	GUI gui;
+		GUI gui;
 
-	public ButtonHandler(GUI gui) {
-		this.gui = gui;
-	}
+		public ButtonHandler(GUI gui) {
+			this.gui = gui;
+		}
 
-	public void actionPerformed(ActionEvent evt) {
-		gui.refreshImage();
+		public void actionPerformed(ActionEvent evt) {
+			gui.refreshImage();
+		}
 	}
-}
 
 class GUI extends JFrame {
 
@@ -92,6 +95,21 @@ class GUI extends JFrame {
 		ClientReceive receive = new ClientReceive(port, server, monitor);
 		receive.start();
 	}
+	
+	private void getTime(byte[] array) {
+		long stime = System.currentTimeMillis();
+		int index = 0;
+		array[index++] = (byte) ((stime & 0xff00000000000000L) >> 56);
+		array[index++] = (byte) ((stime & 0x00ff000000000000L) >> 48);
+		array[index++] = (byte) ((stime & 0x0000ff0000000000L) >> 40);
+		array[index++] = (byte) ((stime & 0x000000ff00000000L) >> 32);
+		array[index++] = (byte) ((stime & 0x00000000ff000000L) >> 24);
+		array[index++] = (byte) ((stime & 0x0000000000ff0000L) >> 16);
+		array[index++] = (byte) ((stime & 0x000000000000ff00L) >> 8);
+		array[index++] = (byte) ((stime & 0x00000000000000ffL));
+		
+	}
+
 
 	public void refreshImage() {
 		try {
@@ -112,4 +130,6 @@ class GUI extends JFrame {
 			firstCall = false;
 		}
 	}
+	
+	
 }
