@@ -2,6 +2,7 @@ package skeleton.demo;
 
 import skeleton.server.JPEGHTTPServer;
 import skeleton.client.JPEGHTTPClient;
+import skeleton.client.GUIController;
 
 public class JPEGHTTPDemo {
 
@@ -15,8 +16,9 @@ public class JPEGHTTPDemo {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		Client c = new Client();
-		c.start();
+//		Client c = new Client();
+//		c.start();
+		GUIController gui = new GUIController("localhost","6077");
 	}
 	
 	private static class Server1 extends Thread {
@@ -33,7 +35,7 @@ public class JPEGHTTPDemo {
 	
 	private static class Client extends Thread {
 		public void run() {
-			JPEGHTTPClient.main(new String[] {"localhost", "6077"});
+			JPEGHTTPClient.main(new String[] {"localhost", "6078"});
 		}
 	}
 }
