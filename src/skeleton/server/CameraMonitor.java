@@ -2,6 +2,8 @@ package skeleton.server;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
+import java.io.OutputStream;
+
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
  */
@@ -76,5 +78,9 @@ public class CameraMonitor {
         cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
         cam.getJPEG(imageBox, 0); // put image in imageBox
         cam.close();
+    }
+
+    public synchronized void sendImage(OutputStream os) {
+        // wait for new image and send it
     }
 }
