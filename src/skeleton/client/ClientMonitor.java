@@ -1,21 +1,23 @@
 package skeleton.client;
 
 public class ClientMonitor {
-	private byte[] jpeg;
-	private boolean hasChanged;
+	private byte[] buffer;
+	private boolean hasImage;
 	
 	public ClientMonitor(){
-		hasChanged = false;
+		hasImage = false;
 	}
-	public synchronized void putImage(byte[] jpeg){
-		this.jpeg = jpeg;
-		hasChanged = true;
+	public synchronized void putImage(byte[] image) throws InterruptedException{
+		while(hasImage) wait();
+		System.arraycopy(image, 0, buffer, 0, image.length);
+		hasImage = true;
 		notifyAll();
 	}
 	
-	public synchronized byte[] getImage() throws InterruptedException{
-		while(!hasChanged){ wait();}
-		hasChanged = false;
-		return jpeg;
+	public synchronized void getImage(byte[] image) throws InterruptedException{
+		while(!hasImage) wait();
+		System.arraycopy(buffer, 0, image, 0, image.length);
+		hasImage = false;
+		notifyAll();
 	}
 }

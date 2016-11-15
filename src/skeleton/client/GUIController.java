@@ -113,7 +113,7 @@ class GUI extends JFrame {
 
 	public void refreshImage() {
 		try {
-			jpeg = monitor.getImage();
+			monitor.getImage(jpeg);
 		} catch (Exception E) {
 			return;
 		}

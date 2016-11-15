@@ -31,11 +31,13 @@ public class ClientReceive extends Thread {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (InterruptedException e){
+				
 			}
 		}
 	}
 
-	private void getImage() throws IOException {
+	private void getImage() throws IOException, InterruptedException {
 		
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
