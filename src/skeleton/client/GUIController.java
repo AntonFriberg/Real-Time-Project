@@ -33,7 +33,6 @@ public class GUIController extends Thread {
 	}
 
 }
-
 	
 	class ImagePanel extends JPanel {
 		ImageIcon icon;

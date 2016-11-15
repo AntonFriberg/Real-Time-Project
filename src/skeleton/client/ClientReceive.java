@@ -22,6 +22,7 @@ public class ClientReceive extends Thread {
 		this.port = port;
 		this.server = server;
 		this.monitor = monitor;
+	
 	}
 
 	public void run() {
@@ -29,7 +30,6 @@ public class ClientReceive extends Thread {
 			try {
 				getImage();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e){
 				
@@ -38,8 +38,7 @@ public class ClientReceive extends Thread {
 	}
 
 	private void getImage() throws IOException, InterruptedException {
-		
-		sock = new Socket(server, port);
+		sock = new Socket(server,port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 		// Send a simple request, always for "/image.jpg"
