@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -14,32 +18,43 @@ import javax.swing.SwingUtilities;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
-//	class ButtonHandler implements ActionListener {
-//
-//		GUI gui;
-//
-//		public ButtonHandler(GUI gui) {
-//			this.gui = gui;
-//		}
-//
-//		public void actionPerformed(ActionEvent evt) {
-//			gui.refreshImage();
-//		}
-//	}
+public class CameraInterface extends Thread {
+	private GUI gui;
+	private ClientMonitor monitor;
+	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
+	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
+	private byte[] motionDetectStatus = new byte[0];
+	private String server, port;
 
-public class GUI extends JFrame {
+	public CameraInterface(String server, String port) {
+		monitor = new ClientMonitor(); // The monitor between
+		gui = new GUI(server, Integer.parseInt(port));
+		this.server = server;
+		this.port = port;
+	}
+
+	public void run() {
+		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(port), monitor);
+		clientReceive.start();
+		while (true) {
+			try {
+				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
+				gui.refreshImage(jpeg);
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}
+
+class GUI extends JFrame {
 	private ImagePanel imagePanel;
 	private JButton button;
-	private boolean firstCall = true;
+	private boolean firstCall = true; 
 	private String server;
 	private int port;
 
-	/**
-	 * 
-	 * @param server
-	 * @param port
-	 * @param monitor
-	 */
 	public GUI(String server, int port) {
 		super();
 		this.server = server;
@@ -51,20 +66,22 @@ public class GUI extends JFrame {
 	}
 
 	/**
-	 * Displays the sent in image in the GUI, does not do this direct but invokes the inner thread in Swing
+	 * Displays the sent image in the GUI, does not do this direct but
+	 * invokes the inner thread in Swing
 	 * 
 	 * @param image
 	 */
 	public void refreshImage(byte[] image) {
 		try {
-			// In order to prevent swing from trying to display a corrupt image
+			// In order to prevent swing from trying to display a corrupt
+			// image
 			// the image is stored in a temporary array
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					imagePanel.refresh(tempImgArray);
-					
+
 				}
 			});
 			if (firstCall) {
