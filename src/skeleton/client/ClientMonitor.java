@@ -20,6 +20,7 @@ public class ClientMonitor {
 	public synchronized void putImage(byte[] image) throws InterruptedException{
 		while(hasImage) wait();
 		System.arraycopy(image, 0, buffer, 0, image.length);
+		System.out.println("Put");
 		hasImage = true;
 		notifyAll();
 	}
@@ -32,6 +33,7 @@ public class ClientMonitor {
 	public synchronized void getImage(byte[] image) throws InterruptedException{
 		while(!hasImage) wait();
 		System.arraycopy(buffer, 0, image, 0, buffer.length);
+		System.out.println("Fetch");
 		hasImage = false;
 		notifyAll();
 	}

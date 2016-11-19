@@ -62,22 +62,24 @@ public class JPEGHTTPServer {
 	 */
 	public void handleRequests() throws IOException {
 		byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
-		ServerSocket serverSocket = new ServerSocket(myPort);
 		System.out.println("HTTP server operating at port " + myPort + ".");
+			ServerSocket serverSocket = new ServerSocket(myPort);
 
 		while (true) {
+
 			try {
+				Socket clientSocket = serverSocket.accept();
+				InputStream  is = clientSocket.getInputStream();
+				OutputStream os = clientSocket.getOutputStream();
+
 				// The 'accept' method waits for a client to connect, then
 				// returns a socket connected to that client.
-				Socket clientSocket = serverSocket.accept();
 
 				// The socket is bi-directional. It has an input stream to read
 				// from and an output stream to write to. The InputStream can
 				// be read from using read(...) and the OutputStream can be
 				// written to using write(...). However, we use our own
 				// getLine/putLine methods below.
-				InputStream  is = clientSocket.getInputStream();
-				OutputStream os = clientSocket.getOutputStream();
 
 				// Read the request
 				String request = getLine(is);
@@ -111,6 +113,7 @@ public class JPEGHTTPServer {
 					}
 					int len = myCamera.getJPEG(jpeg, 0);
 					
+					System.out.println(len);
 					os.write(jpeg, 0, len);
 					myCamera.close();
 				}

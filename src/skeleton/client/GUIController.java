@@ -35,6 +35,7 @@ public class GUIController extends Thread {
 			try {
 				monitor.getImage(jpeg);
 				gui.refreshImage(jpeg);
+				
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

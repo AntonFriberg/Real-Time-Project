@@ -74,6 +74,7 @@ public class ClientReceive extends Thread {
 		sock.close();
 
 		System.out.println("Received image data (" + bytesRead + " bytes).");
+		
 		monitor.putImage(jpeg);
 	}
 

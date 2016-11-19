@@ -33,7 +33,6 @@ public class GUI extends JFrame {
 	private boolean firstCall = true;
 	private String server;
 	private int port;
-	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 
 	/**
 	 * 
@@ -46,27 +45,33 @@ public class GUI extends JFrame {
 		this.server = server;
 		this.port = port;
 		imagePanel = new ImagePanel();
-		// button = new JButton("Start continuous");
-		// button.addActionListener(new ButtonHandler(this));
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(imagePanel, BorderLayout.NORTH);
-		// this.getContentPane().add(button, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
-		this.pack();
 	}
 
-	public void refreshImage(byte[] jpeg) {
+	/**
+	 * Displays the sent in image in the GUI, does not do this direct but invokes the inner thread in Swing
+	 * 
+	 * @param image
+	 */
+	public void refreshImage(byte[] image) {
 		try {
-			this.jpeg = jpeg;
+			// In order to prevent swing from trying to display a corrupt image
+			// the image is stored in a temporary array
+			byte[] tempImgArray = new byte[image.length];
+			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					imagePanel.refresh(jpeg);
+					imagePanel.refresh(tempImgArray);
+					
 				}
 			});
 			if (firstCall) {
 				this.pack();
 				this.setVisible(true);
 				firstCall = false;
+				this.setResizable(false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
