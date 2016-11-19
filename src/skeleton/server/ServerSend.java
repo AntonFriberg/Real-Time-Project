@@ -69,9 +69,13 @@ public class ServerSend extends Thread{
                 System.out.println("HTTP request '" + request
                         + "' received.");
 
-                while (sendSocket.isConnected()) {
+                if (request.substring(0, 4).equals("GET ")) {
                     cm.sendImage(os);
                 }
+
+                //while (sendSocket.isConnected()) {
+                //    cm.sendImage(os);
+                //}
 
                 os.flush();                      // Flush any remaining content
                 sendSocket.close();	          // Disconnect from the client

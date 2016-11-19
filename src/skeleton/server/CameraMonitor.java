@@ -2,6 +2,7 @@ package skeleton.server;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -14,6 +15,7 @@ public class CameraMonitor {
      */
     private static int IDLE_FRAMERATE = 5000;
     private static int MOTION_FRAMERATE = 40;
+    private String SEND_IMAGE = "IMG ";
     private int frameRate = IDLE_FRAMERATE;
     private byte[] imageBox; // The box we keep the latest image in
     private byte[] timeStampBox; // The box we keep the latest timestamp
@@ -66,7 +68,7 @@ public class CameraMonitor {
 
     public synchronized void takeImage() {
         try {
-            wait(frameRate);
+            wait(frameRate);                    //Should use counter instead
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -80,7 +82,15 @@ public class CameraMonitor {
         cam.close();
     }
 
-    public synchronized void sendImage(OutputStream os) {
-        // wait for new image and send it
+    public synchronized void sendImage(OutputStream os) throws IOException {
+        byte[] imgCommand = SEND_IMAGE.getBytes();
+        byte[] packet = new byte[imgCommand.length + timeStampBox.length];
+        /**
+         * Append imgCommand with timestamp
+         */
+        System.arraycopy(imgCommand, 0, packet, 0, imgCommand.length);
+        System.arraycopy(timeStampBox, 0, packet, imgCommand.length, timeStampBox.length);
+
+        os.write(imgCommand);
     }
 }
