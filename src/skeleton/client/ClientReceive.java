@@ -17,28 +17,25 @@ public class ClientReceive extends Thread {
 	private int port;
 	private String server;
 	private ClientMonitor monitor;
-	
-	public ClientReceive(int port, String server, ClientMonitor monitor) {
+
+	public ClientReceive( String server, int port, ClientMonitor monitor) {
 		this.port = port;
 		this.server = server;
 		this.monitor = monitor;
-	
 	}
 
 	public void run() {
-		while (true) {
-			try {
+		try {	
+			while (true) {
 				getImage();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e){
-				
 			}
+		} catch (Exception e) {
+
 		}
 	}
 
 	private void getImage() throws IOException, InterruptedException {
-		sock = new Socket(server,port);
+		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 		// Send a simple request, always for "/image.jpg"
@@ -73,7 +70,7 @@ public class ClientReceive extends Thread {
 				bytesLeft -= status;
 			}
 		} while (status >= 0);
-		
+
 		sock.close();
 
 		System.out.println("Received image data (" + bytesRead + " bytes).");
