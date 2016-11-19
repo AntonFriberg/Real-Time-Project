@@ -14,6 +14,8 @@ public class ClientReceive extends Thread {
 	private OutputStream os;
 	private static final byte[] CRLF = { 13, 10 };
 	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
+	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
+	private byte[] motionDetect = new byte[1];
 	private int port;
 	private String server;
 	private ClientMonitor monitor;
@@ -25,19 +27,32 @@ public class ClientReceive extends Thread {
 	}
 
 	public void run() {
-		try {	
-			while (true) {
-				getImage();
+		while(true){
+			try {
+				getImage(false);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-
 		}
-	}
 
-	private void getImage() throws IOException, InterruptedException {
+	}
+	
+	
+	private void getImage(boolean initCommunication) throws IOException, InterruptedException {
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
+		
+		if(initCommunication){
+			putLine(os,"START ");
+			putLine(os, ""); // The request ends with an empty line
+		}
+		
+		
 		// Send a simple request, always for "/image.jpg"
 		putLine(os, "GET /image.jpg HTTP/1.0");
 		putLine(os, ""); // The request ends with an empty line
@@ -50,19 +65,53 @@ public class ClientReceive extends Thread {
 		do {
 			responseLine = getLine(is);
 		} while (!(responseLine.equals("")));
+//
+//		// Now load the JPEG image.
+//		int bufferSize = jpeg.length;
+//		int bytesRead = 0;
+//		int bytesLeft = bufferSize;
+//		int status;
+//
+//		// We have to keep reading until -1 (meaning "end of file") is
+//		// returned. The socket (which the stream is connected to)
+//		// does not wait until all data is available; instead it
+//		// returns if nothing arrived for some (short) time.
+//		do {
+//			status = is.read(jpeg, bytesRead, bytesLeft);
+//			// The 'status' variable now holds the no. of bytes read,
+//			// or -1 if no more data is available
+//			if (status > 0) {
+//				bytesRead += status;
+//				bytesLeft -= status;
+//			}
+//		} while (status >= 0);
+		
+		//Load the JPEG
+		readData(jpeg.length, jpeg);
 
-		// Now load the JPEG image.
-		int bufferSize = jpeg.length;
+		//Read the Time
+		readData(timeStamp.length, timeStamp);
+	
+		//Read the Motion
+		readData(motionDetect.length, motionDetect);
+		
+		sock.close();
+
+		
+		monitor.putImage(jpeg, timeStamp, motionDetect[0]);
+	}
+
+	private void readData(int bufferSize, byte[] container) throws IOException{
 		int bytesRead = 0;
 		int bytesLeft = bufferSize;
 		int status;
-
+		
 		// We have to keep reading until -1 (meaning "end of file") is
 		// returned. The socket (which the stream is connected to)
 		// does not wait until all data is available; instead it
 		// returns if nothing arrived for some (short) time.
 		do {
-			status = is.read(jpeg, bytesRead, bytesLeft);
+			status = is.read(container, bytesRead, bytesLeft);
 			// The 'status' variable now holds the no. of bytes read,
 			// or -1 if no more data is available
 			if (status > 0) {
@@ -70,14 +119,10 @@ public class ClientReceive extends Thread {
 				bytesLeft -= status;
 			}
 		} while (status >= 0);
-
-		sock.close();
-
-		System.out.println("Received image data (" + bytesRead + " bytes).");
-		
-		monitor.putImage(jpeg);
+		System.out.println("Received data (" + bytesRead + " bytes).");
 	}
-
+	
+	
 	/**
 	 * Read a line from InputStream 's', terminated by CRLF. The CRLF is not
 	 * included in the returned string.

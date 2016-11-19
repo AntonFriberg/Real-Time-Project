@@ -1,8 +1,9 @@
 package skeleton.demo;
 
 import skeleton.server.JPEGHTTPServer;
+import skeleton.client.CameraController;
 //import skeleton.client.JPEGHTTPClient;
-import skeleton.client.GUIController;
+import skeleton.client.CameraInterface;
 
 public class JPEGHTTPDemo {
 
@@ -13,8 +14,9 @@ public class JPEGHTTPDemo {
 		s2.start();
 //		Client c = new Client();
 //		c.start();
-		GUIController gui = new GUIController("localhost","6077");
-		gui.start();
+//		CameraInterface gui = new CameraInterface("localhost","6077");
+//		gui.start();
+		CameraController.main(new String[]{"localhost","6077"});
 	}
 	
 	private static class Server1 extends Thread {
