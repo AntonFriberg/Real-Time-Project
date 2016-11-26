@@ -40,7 +40,7 @@ public class ClientReceive extends Thread {
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 
-		putLine(os, "START /image.jpg"); //Start the transmission of pictures
+		putLine(os, "START "); //Start the transmission of pictures
 		putLine(os, ""); // The request ends with an empty line
 		
 		while (sock.isConnected()) {
