@@ -40,10 +40,10 @@ public class ClientReceive extends Thread {
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 
-		putLine(os, "START "); //Start the transmission of pictures
+		putLine(os, "SRT /image.jpg HTTP/1.0"); //Start the transmission of pictures
 		putLine(os, ""); // The request ends with an empty line
 		
-		while (sock.isConnected()) {
+		if (sock.isConnected()) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
