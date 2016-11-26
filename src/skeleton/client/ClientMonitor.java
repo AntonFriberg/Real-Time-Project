@@ -11,11 +11,12 @@ public class ClientMonitor {
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
 	private int currentMode = 0;
-	private boolean modeChanged = false;
+	private boolean modeChanged;
 	private boolean hasImage;
 
 	public ClientMonitor() {
 		hasImage = false;
+		modeChanged = false;
 		imgBuffer = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 		timeStampBuffer = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 		motionDetectBuffer = new byte[1];
@@ -54,22 +55,30 @@ public class ClientMonitor {
 		hasImage = false;
 		notifyAll();
 	}
-	
-	
+
 	/**
-	 * Communication between the cameraInterface and the ClientSend in order to change from movie to idle
+	 * Communication between the cameraInterface and the ClientSend in order to
+	 * change from movie to idle The ClientSend waits here for the next command.
+	 * 
 	 * @return the currentMode of operation
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
-	public synchronized int getCommand() throws InterruptedException{
-		while(!modeChanged) 
+	public synchronized int getCommand() throws InterruptedException {
+		while (!modeChanged)
 			wait();
 		modeChanged = false;
 		return currentMode;
 	}
-	
-	public synchronized void setCommand(int newCommand){
-		if(newCommand == 0 || newCommand == 1)
+
+	/**
+	 * Sets a new command and notifies the ClientSend that there is a new
+	 * command
+	 * 
+	 * @param newCommand
+	 *            the command that is to be changed
+	 */
+	public synchronized void setCommand(int newCommand) {
+		if (newCommand == 0 || newCommand == 1)
 			currentMode = newCommand;
 		modeChanged = true;
 		notifyAll();

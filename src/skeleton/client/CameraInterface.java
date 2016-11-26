@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -75,6 +76,7 @@ class GUI extends JFrame {
 		this.monitor = monitor;
 		imagePanel = new ImagePanel();
 		
+		this.setTitle("Operating at port : " + port);
 		//The buttons are created
 		btnMovie = new JRadioButton("Movie", false);
 		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
@@ -83,6 +85,10 @@ class GUI extends JFrame {
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 
+		//Adds the radiobutton to a group
+		ButtonGroup group = new ButtonGroup();
+		group.add(btnMovie);
+		group.add(btnIdle);
 		
 		//The buttons are added to a panel
 		JPanel buttonPane = new JPanel();
@@ -90,12 +96,10 @@ class GUI extends JFrame {
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		buttonPane.add(btnMovie);
 		buttonPane.add(btnIdle);
+		buttonPane.add(Box.createHorizontalGlue());
+
 		buttonPane.add(btnDisconnect);
 		
-		//Adds the radiobutton to a group
-		ButtonGroup group = new ButtonGroup();
-		group.add(btnMovie);
-		group.add(btnIdle);
 		
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(imagePanel, BorderLayout.NORTH);

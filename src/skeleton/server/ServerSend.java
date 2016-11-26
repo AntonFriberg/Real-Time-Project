@@ -56,7 +56,7 @@ public class ServerSend extends Thread{
 
                 // Read the request
                 String request = getLine(is);
-
+                
                 // The request is followed by some additional header lines,
                 // followed by a blank line. Those header lines are ignored.
                 String header;
@@ -69,7 +69,7 @@ public class ServerSend extends Thread{
                 System.out.println("HTTP request '" + request
                         + "' received.");
 
-                if (request.substring(0, 4).equals("GET ")) {
+                if (request.substring(0, 6).equals("START ")) {
                     cm.sendImage(os);
                 }
 

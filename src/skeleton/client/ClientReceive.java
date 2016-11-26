@@ -54,14 +54,17 @@ public class ClientReceive extends Thread {
 				responseLine = getLine(is);
 			} while (!(responseLine.equals("")));
 	
+			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
+			readData(receivedData.length, receivedData);
+			
 			// Load the JPEG
-			readData(jpeg.length, jpeg);
+			System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
 
 			// Read the Time
-			readData(timeStamp.length, timeStamp);
+			System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE, timeStamp, 0, AxisM3006V.TIME_ARRAY_SIZE);
 
 			// Read the Motion
-			readData(motionDetect.length, motionDetect);
+			System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE+ AxisM3006V.TIME_ARRAY_SIZE, motionDetect, 0, 1);
 
 			os.flush();
 			monitor.putImage(jpeg, timeStamp, motionDetect[0]);
