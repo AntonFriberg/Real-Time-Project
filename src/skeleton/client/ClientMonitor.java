@@ -7,6 +7,11 @@ public class ClientMonitor {
 	private byte[] timeStampBuffer;
 	private byte[] motionDetectBuffer;
 
+	public static final int IDLE_MODE = 0;
+	public static final int MOVIE_MODE = 1;
+	public static final int DISCONNECT = 2;
+	private int currentMode = 0;
+	private boolean modeChanged = false;
 	private boolean hasImage;
 
 	public ClientMonitor() {
@@ -49,4 +54,25 @@ public class ClientMonitor {
 		hasImage = false;
 		notifyAll();
 	}
+	
+	
+	/**
+	 * Communication between the cameraInterface and the ClientSend in order to change from movie to idle
+	 * @return the currentMode of operation
+	 * @throws InterruptedException 
+	 */
+	public synchronized int getCommand() throws InterruptedException{
+		while(!modeChanged) 
+			wait();
+		modeChanged = false;
+		return currentMode;
+	}
+	
+	public synchronized void setCommand(int newCommand){
+		if(newCommand == 0 || newCommand == 1)
+			currentMode = newCommand;
+		modeChanged = true;
+		notifyAll();
+	}
+
 }
