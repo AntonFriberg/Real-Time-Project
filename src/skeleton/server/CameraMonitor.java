@@ -33,6 +33,7 @@ public class CameraMonitor {
         cam.init();
         cam.setProxy("argus-1.student.lth.se", port);
         imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
+        timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
     }
 
     /**

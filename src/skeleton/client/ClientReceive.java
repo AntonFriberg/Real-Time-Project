@@ -20,92 +20,61 @@ public class ClientReceive extends Thread {
 	private String server;
 	private ClientMonitor monitor;
 
-	public ClientReceive( String server, int port, ClientMonitor monitor) {
+	public ClientReceive(String server, int port, ClientMonitor monitor) {
 		this.port = port;
 		this.server = server;
 		this.monitor = monitor;
 	}
 
 	public void run() {
-		while(true){
-			try {
-				getImage(false);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		try {
+			getImage();
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
 	}
-	
-	
-	private void getImage(boolean initCommunication) throws IOException, InterruptedException {
+
+	private void getImage() throws IOException, InterruptedException {
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
-		
-		if(initCommunication){
-			putLine(os,"START ");
-			putLine(os, ""); // The request ends with an empty line
-		}
-		
-		
-		// Send a simple request, always for "/image.jpg"
-		putLine(os, "GET /image.jpg HTTP/1.0");
+
+		putLine(os, "START /image.jpg"); //Start the transmission of pictures
 		putLine(os, ""); // The request ends with an empty line
-
-		// Read the first line of the response (status line)
-		String responseLine;
-		responseLine = getLine(is);
-		System.out.println("HTTP server says '" + responseLine + "'.");
-		// Ignore the following header lines up to the final empty one.
-		do {
+		
+		while (sock.isConnected()) {
+			// Read the first line of the response (status line)
+			String responseLine;
 			responseLine = getLine(is);
-		} while (!(responseLine.equals("")));
-//
-//		// Now load the JPEG image.
-//		int bufferSize = jpeg.length;
-//		int bytesRead = 0;
-//		int bytesLeft = bufferSize;
-//		int status;
-//
-//		// We have to keep reading until -1 (meaning "end of file") is
-//		// returned. The socket (which the stream is connected to)
-//		// does not wait until all data is available; instead it
-//		// returns if nothing arrived for some (short) time.
-//		do {
-//			status = is.read(jpeg, bytesRead, bytesLeft);
-//			// The 'status' variable now holds the no. of bytes read,
-//			// or -1 if no more data is available
-//			if (status > 0) {
-//				bytesRead += status;
-//				bytesLeft -= status;
-//			}
-//		} while (status >= 0);
-		
-		//Load the JPEG
-		readData(jpeg.length, jpeg);
-
-		//Read the Time
-		readData(timeStamp.length, timeStamp);
+			System.out.println("HTTP server says '" + responseLine + "'.");
+			
+			// Ignore the following header lines up to the final empty one.
+			do {
+				responseLine = getLine(is);
+			} while (!(responseLine.equals("")));
 	
-		//Read the Motion
-		readData(motionDetect.length, motionDetect);
-		
+			// Load the JPEG
+			readData(jpeg.length, jpeg);
+
+			// Read the Time
+			readData(timeStamp.length, timeStamp);
+
+			// Read the Motion
+			readData(motionDetect.length, motionDetect);
+
+			os.flush();
+			monitor.putImage(jpeg, timeStamp, motionDetect[0]);
+		}
 		sock.close();
 
-		
-		monitor.putImage(jpeg, timeStamp, motionDetect[0]);
 	}
 
-	private void readData(int bufferSize, byte[] container) throws IOException{
+	private void readData(int bufferSize, byte[] container) throws IOException {
+		// Stores the bytes in the unspecified container
 		int bytesRead = 0;
 		int bytesLeft = bufferSize;
 		int status;
-		
 		// We have to keep reading until -1 (meaning "end of file") is
 		// returned. The socket (which the stream is connected to)
 		// does not wait until all data is available; instead it
@@ -121,8 +90,7 @@ public class ClientReceive extends Thread {
 		} while (status >= 0);
 		System.out.println("Received data (" + bytesRead + " bytes).");
 	}
-	
-	
+
 	/**
 	 * Read a line from InputStream 's', terminated by CRLF. The CRLF is not
 	 * included in the returned string.

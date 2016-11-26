@@ -79,12 +79,15 @@ class GUI extends JFrame {
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			SwingUtilities.invokeLater(new Runnable() {
+				//Show image when it is convenient
 				public void run() {
 					imagePanel.refresh(tempImgArray);
 
 				}
 			});
+			
 			if (firstCall) {
+				//If it is the first call change the window
 				this.pack();
 				this.setVisible(true);
 				firstCall = false;
