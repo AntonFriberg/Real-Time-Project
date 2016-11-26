@@ -6,9 +6,9 @@ public class CameraController {
 			String server = args[0];
 			String port = args[1];
 			CameraInterface camera1 = new CameraInterface(server, port);
-			CameraInterface camera2 = new CameraInterface(server,port);
+//			CameraInterface camera2 = new CameraInterface(server,port);
 			camera1.start();
-			camera2.start();			
+//			camera2.start();			
 		}
 	}
 }

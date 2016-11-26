@@ -52,6 +52,7 @@ public class ClientSend extends Thread {
 			putLine(os, DISCONNECT); // Start the transmission of pictures
 			putLine(os, ""); // The request ends with an empty line
 		}
+		
 		// Read the first line of the response (status line)
 		String responseLine;
 		responseLine = getLine(is);

@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -38,6 +40,8 @@ public class CameraInterface extends Thread {
 	public void run() {
 		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(port), monitor);
 		clientReceive.start();
+		ClientSend clientSend = new ClientSend(server, Integer.parseInt(port),monitor);
+		clientSend.start();
 		while (true) {
 			try {
 				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
@@ -48,11 +52,12 @@ public class CameraInterface extends Thread {
 			}
 		}
 	}
+	
 }
 
 class GUI extends JFrame {
 	private ImagePanel imagePanel;
-	private JButton button;
+	private JButton btnDisconnect;
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
 	
@@ -69,21 +74,41 @@ class GUI extends JFrame {
 		this.port = port;
 		this.monitor = monitor;
 		imagePanel = new ImagePanel();
+		
+		//The buttons are created
 		btnMovie = new JRadioButton("Movie", false);
+		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
 		btnIdle = new JRadioButton("Idle", true);
-		group = new ButtonGroup();
+		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
+		btnDisconnect = new JButton("Disconnect");
+		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
+
+		
+		//The buttons are added to a panel
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
+		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(btnMovie);
+		buttonPane.add(btnIdle);
+		buttonPane.add(btnDisconnect);
+		
+		//Adds the radiobutton to a group
+		ButtonGroup group = new ButtonGroup();
 		group.add(btnMovie);
 		group.add(btnIdle);
-		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
-		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
-		//btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
+		
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(imagePanel, BorderLayout.NORTH);
-		this.getContentPane().add(btnMovie, BorderLayout.WEST);
-		this.getContentPane().add(btnIdle, BorderLayout.CENTER);
+		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
-	}
+		this.pack();
+		this.setVisible(true);
 
+		this.setSize(400, 314);
+	}
+	
+
+	
 	/**
 	 * Displays the sent image in the GUI, does not do this direct but
 	 * invokes the inner thread in Swing
