@@ -15,7 +15,8 @@ public class CameraMonitor {
      */
     private static int IDLE_FRAMERATE = 5000;
     private static int MOTION_FRAMERATE = 40;
-    private String SEND_IMAGE_CMD = "IMG ";
+    private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
+    private static final byte[] EOL = "\r\n".getBytes();
     private int frameRate = IDLE_FRAMERATE;
     private byte[] imageBox; // The box we keep the latest image in
     private byte[] timeStampBox; // The box we keep the latest timestamp
@@ -41,11 +42,11 @@ public class CameraMonitor {
         while(hasImage) wait();
         System.arraycopy(image, 0, imageBox, image.length);
         hasImage = true;
-        notifyAll();
-    }
+     }
 
-    public synchronized void getImage(byte[] image) throws InterruptedException {
-        while(!hasImage) wait();
+     public synchronized void getImage(byte[] image) throws InterruptedException {
+     while(!hasImage) wait();
+        notifyAll();
         System.arraycopy(imageBox, 0, image, image.length);
         hasImage = false;
         notifyAll();
@@ -84,20 +85,41 @@ public class CameraMonitor {
     }
 
     public synchronized void sendImage(OutputStream os) throws IOException {
-        byte[] imgCommand = SEND_IMAGE_CMD.getBytes();
-        byte[] packet = new byte[imgCommand.length + imageBox.length + timeStampBox.length];
+        byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + EOL.length];
+        byte[] imgDataPacket = new byte[imageBox.length + EOL.length];
+        byte[] tsDataPacket = new byte[timeStampBox.length + EOL.length];
+        byte[] packet = new byte[imgCmdPacket.length + imgDataPacket.length + tsDataPacket.length];
+        System.out.println("Constructed byte arrays");
+
         /**
-         * Append imgCommand with image data and timestamp
+         * Put "IMG " + EOL in image command packet
          */
-        takeImage();
-        System.out.print(imageBox);
-        System.arraycopy(imgCommand, 0, packet, 0, imgCommand.length - 1);
-        System.arraycopy(imageBox, 0, packet, imgCommand.length, imgCommand.length + imageBox.length - 1);
-        System.arraycopy(timeStampBox, 0, packet, imgCommand.length + imageBox.length,
-                         packet.length - 1);
+        System.arraycopy(SEND_IMAGE_CMD, 0, imgCmdPacket, 0, SEND_IMAGE_CMD.length);
+        System.arraycopy(EOL, 0, imgCmdPacket, SEND_IMAGE_CMD.length, EOL.length);
+        System.out.println("copied command");
         /**
-         * Send the packet via the Out
+         * Put image data and EOL in image data packet
          */
-        os.write(imgCommand);
+        System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
+        System.arraycopy(EOL, 0, imgDataPacket, imageBox.length, EOL.length);
+        System.out.println("copied image data");
+        /**
+         * Put timestamp data and EOL in timestamp data packet
+         */
+        System.arraycopy(timeStampBox, 0, tsDataPacket, 0, timeStampBox.length);
+        System.arraycopy(EOL, 0, tsDataPacket, timeStampBox.length, EOL.length);
+        System.out.println("copied image timestamp");
+
+        /**
+         * Merge data arrays into packet and send
+         */
+        System.arraycopy(imgCmdPacket, 0, packet, 0, imgCmdPacket.length);
+        System.arraycopy(imgDataPacket, 0, packet, imgCmdPacket.length, imgDataPacket.length);
+        System.arraycopy(tsDataPacket, 0, packet, imgCmdPacket.length + imgDataPacket.length, tsDataPacket.length);
+        os.write(imgCmdPacket);
+        os.write(imgDataPacket);
+        os.write(tsDataPacket);
     }
+
+
 }

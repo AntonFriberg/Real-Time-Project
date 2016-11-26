@@ -69,8 +69,9 @@ public class ServerSend extends Thread{
                 System.out.println("HTTP request '" + request
                         + "' received.");
 
-                if (request.substring(0, 3).equals("SRT ")) {
+                if (request.substring(0, 4).equals("SRT ")) {
                     System.out.println("sending image");
+                    cm.takeImage();
                     cm.sendImage(os);
                 }
 
