@@ -15,7 +15,7 @@ public class CameraMonitor {
      */
     private static int IDLE_FRAMERATE = 5000;
     private static int MOTION_FRAMERATE = 40;
-    private String SEND_IMAGE = "IMG ";
+    private String SEND_IMAGE_CMD = "IMG ";
     private int frameRate = IDLE_FRAMERATE;
     private byte[] imageBox; // The box we keep the latest image in
     private byte[] timeStampBox; // The box we keep the latest timestamp
@@ -84,14 +84,20 @@ public class CameraMonitor {
     }
 
     public synchronized void sendImage(OutputStream os) throws IOException {
-        byte[] imgCommand = SEND_IMAGE.getBytes();
-        byte[] packet = new byte[imgCommand.length + timeStampBox.length];
+        byte[] imgCommand = SEND_IMAGE_CMD.getBytes();
+        byte[] packet = new byte[imgCommand.length + imageBox.length + timeStampBox.length];
         /**
-         * Append imgCommand with timestamp
+         * Append imgCommand with image data and timestamp
          */
-        System.arraycopy(imgCommand, 0, packet, 0, imgCommand.length);
-        System.arraycopy(timeStampBox, 0, packet, imgCommand.length, timeStampBox.length);
-
+        takeImage();
+        System.out.print(imageBox);
+        System.arraycopy(imgCommand, 0, packet, 0, imgCommand.length - 1);
+        System.arraycopy(imageBox, 0, packet, imgCommand.length, imgCommand.length + imageBox.length - 1);
+        System.arraycopy(timeStampBox, 0, packet, imgCommand.length + imageBox.length,
+                         packet.length - 1);
+        /**
+         * Send the packet via the Out
+         */
         os.write(imgCommand);
     }
 }

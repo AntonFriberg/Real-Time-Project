@@ -40,7 +40,7 @@ public class ServerSend extends Thread{
         }
         System.out.println("HTTP server operating at port " + sendPort + ".");
 
-        while(true) {
+        if (true) {
             try {
                 // The 'accept' method waits for a client to connect, then
                 // returns a socket connected to that client.
@@ -69,7 +69,8 @@ public class ServerSend extends Thread{
                 System.out.println("HTTP request '" + request
                         + "' received.");
 
-                if (request.substring(0, 4).equals("GET ")) {
+                if (request.substring(0, 3).equals("SRT ")) {
+                    System.out.println("sending image");
                     cm.sendImage(os);
                 }
 
