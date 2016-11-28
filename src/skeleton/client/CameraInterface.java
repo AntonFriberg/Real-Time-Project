@@ -28,7 +28,7 @@ public class CameraInterface extends Thread {
 	private ClientMonitor monitor;
 	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
-	private byte[] motionDetectStatus = new byte[0];
+	private byte[] motionDetectStatus = new byte[1];
 	private String server, port;
 
 	public CameraInterface(String server, String port) {

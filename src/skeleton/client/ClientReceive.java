@@ -40,40 +40,51 @@ public class ClientReceive extends Thread {
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 
-		putLine(os, "SRT /image.jpg HTTP/1.0"); //Start the transmission of pictures
+		putLine(os, "SRT /image.jpg HTTP/1.0"); // Start the transmission of
+												// pictures
 		putLine(os, ""); // The request ends with an empty line
-		
+
 		if (sock.isConnected()) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
 			System.out.println("HTTP server says '" + responseLine + "'.");
-			
+
 			// Ignore the following header lines up to the final empty one.
 			do {
 				responseLine = getLine(is);
 			} while (!(responseLine.equals("")));
-	
+
 			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
-			readData(receivedData.length, receivedData);
+			int bytesRead = readData(receivedData.length, receivedData);
 			
-			// Load the JPEG
-			System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
+			byte[] receivedData2 = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
 
-			// Read the Time
-			System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE, timeStamp, 0, AxisM3006V.TIME_ARRAY_SIZE);
+			int bytesRead2 = readData(receivedData.length, receivedData);
 
-			// Read the Motion
-			System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE+ AxisM3006V.TIME_ARRAY_SIZE, motionDetect, 0, 1);
 
+			if (bytesRead >= AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
+				// Load the JPEG
+				System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
+
+				// Read the Time
+				System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE, timeStamp, 0, AxisM3006V.TIME_ARRAY_SIZE);
+
+				// Read the Motion
+				System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE, motionDetect,
+						0, 1);
+
+				monitor.putImage(jpeg, timeStamp, motionDetect[0]);
+			} else {
+				// Something went wrong
+			}
 			os.flush();
-			monitor.putImage(jpeg, timeStamp, motionDetect[0]);
 		}
 		sock.close();
 
 	}
 
-	private void readData(int bufferSize, byte[] container) throws IOException {
+	private int readData(int bufferSize, byte[] container) throws IOException {
 		// Stores the bytes in the unspecified container
 		int bytesRead = 0;
 		int bytesLeft = bufferSize;
@@ -90,8 +101,9 @@ public class ClientReceive extends Thread {
 				bytesRead += status;
 				bytesLeft -= status;
 			}
-		} while (status >= 0);
+		} while (status >= 0);		
 		System.out.println("Received data (" + bytesRead + " bytes).");
+		return bytesRead;
 	}
 
 	/**
