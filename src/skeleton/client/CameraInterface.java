@@ -47,6 +47,8 @@ public class CameraInterface extends Thread {
 			try {
 				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
 				gui.refreshImage(jpeg);
+				gui.setMode(motionDetectStatus[0]);
+			
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -78,9 +80,9 @@ class GUI extends JFrame {
 		
 		this.setTitle("Operating at port : " + port);
 		//The buttons are created
-		btnMovie = new JRadioButton("Movie", false);
+		btnMovie = new JRadioButton("Movie", true);
 		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
-		btnIdle = new JRadioButton("Idle", true);
+		btnIdle = new JRadioButton("Idle", false);
 		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
@@ -109,7 +111,15 @@ class GUI extends JFrame {
 	}
 	
 
-	
+	public void setMode(byte b){
+		if(b == ClientMonitor.IDLE_MODE){
+			btnIdle.setSelected(true);
+			btnMovie.setSelected(false);
+		} else {
+			btnIdle.setSelected(false);
+			btnMovie.setSelected(true);
+		}
+	}
 	/**
 	 * Displays the sent image in the GUI, does not do this direct but
 	 * invokes the inner thread in Swing
