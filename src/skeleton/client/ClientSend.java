@@ -32,7 +32,7 @@ public class ClientSend extends Thread {
 				int newCommand = monitor.getCommand();
 				sendCommand(newCommand);
 			} catch (Exception e) {
-				
+				System.out.println("Connection Error");
 			}			
 		}
 	}

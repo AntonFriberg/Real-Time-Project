@@ -1,7 +1,7 @@
 package skeleton.server;
 
-//import se.lth.cs.eda040.fakecamera.AxisM3006V;
-import se.lth.cs.eda040.proxycamera.AxisM3006V;
+import se.lth.cs.eda040.fakecamera.AxisM3006V;
+//import se.lth.cs.eda040.proxycamera.AxisM3006V;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -118,8 +118,11 @@ public class CameraMonitor {
         System.arraycopy(imgDataPacket, 0, packet, imgCmdPacket.length, imgDataPacket.length);
         System.arraycopy(tsDataPacket, 0, packet, imgCmdPacket.length + imgDataPacket.length, tsDataPacket.length);
         os.write(imgCmdPacket);
+        System.out.println(imgCmdPacket.length);
         os.write(imgDataPacket);
+        System.out.println(imgDataPacket.length);
         os.write(tsDataPacket);
+        System.out.println(tsDataPacket.length);
     }
 
 

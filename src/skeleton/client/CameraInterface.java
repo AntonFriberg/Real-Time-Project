@@ -30,7 +30,7 @@ public class CameraInterface extends Thread {
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 	private byte[] motionDetectStatus = new byte[1];
 	private String server, receivePort, sendPort;
-
+	private long initialTimeDifference = -1;
 	public CameraInterface(String server, String receivePort, String sendPort) {
 		monitor = new ClientMonitor(); // The monitor between
 		gui = new GUI(server, Integer.parseInt(receivePort),monitor);
@@ -47,14 +47,19 @@ public class CameraInterface extends Thread {
 		while (true) {
 			try {
 				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
-				gui.refreshImage(jpeg);
+				gui.refreshImage(jpeg,getDelay(timeStamp));
 				gui.setMode(motionDetectStatus[0]);
-			
-
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private long getDelay(byte [] timeArray){
+		return System.currentTimeMillis() + initialTimeDifference + arrayToTimeConverter(timeArray);
+	}
+	private long arrayToTimeConverter(byte [] timeArray){
+		return 0;
 	}
 	
 }
@@ -64,8 +69,8 @@ class GUI extends JFrame {
 	private JButton btnDisconnect;
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
-	
-	private  ButtonGroup group;
+	private JLabel lbDelay;
+	private ButtonGroup group;
 	private boolean firstCall = true; 
 	private String server;
 	private int port;
@@ -101,17 +106,25 @@ class GUI extends JFrame {
 		buttonPane.add(btnIdle);
 		buttonPane.add(Box.createHorizontalGlue());
 
+		//The labels are added to a panel
 		buttonPane.add(btnDisconnect);
+		lbDelay = new JLabel("Delay Time");
 		
+		JPanel labelPane = new JPanel();
+		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
+		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		labelPane.add(new JLabel("Delay Time : "));
+		labelPane.add(lbDelay);
 		
 		this.getContentPane().setLayout(new BorderLayout());
-		this.getContentPane().add(imagePanel, BorderLayout.NORTH);
+		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
+		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
 		this.pack();
 	}
 	
-
+	
 	public void setMode(byte b){
 		if(b == ClientMonitor.IDLE_MODE){
 			btnIdle.setSelected(true);
@@ -127,18 +140,18 @@ class GUI extends JFrame {
 	 * 
 	 * @param image
 	 */
-	public void refreshImage(byte[] image) {
+	public void refreshImage(byte[] image, long delay) {
 		try {
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
+			lbDelay.setText(String.valueOf(delay));
 			SwingUtilities.invokeLater(new Runnable() {
 				//Show image when it is convenient
 				public void run() {
 					imagePanel.refresh(tempImgArray);
-					
 					pack();
 					setVisible(true);
 					setResizable(false);

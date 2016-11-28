@@ -91,6 +91,10 @@ public class ClientMonitor {
 		receiveShouldDisconnect = true;
 	}
 
+	/**
+	 * Notifies the recieving thread that it should cancel receiving images
+	 * @return
+	 */
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
