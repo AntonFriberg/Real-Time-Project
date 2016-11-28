@@ -5,6 +5,7 @@ import skeleton.client.ClientMonitor;
 import skeleton.client.ClientReceive;
 import skeleton.server.CameraHandler;
 import skeleton.server.CameraMonitor;
+import skeleton.server.ServerReceive;
 import skeleton.server.ServerSend;
 
 public class SocketTest {
@@ -15,7 +16,8 @@ public class SocketTest {
         CameraHandler cam = new CameraHandler(cm);
         cam.start();
         server.start();
-        System.out.println("Started threads");
-        CameraController.main(new String[]{"localhost","6077"});
+        ServerReceive serverRec = new ServerReceive(6078,"localhost",cam);
+        serverRec.start();
+        CameraController.main(new String[]{"localhost","6077","6078"});
     }
 }

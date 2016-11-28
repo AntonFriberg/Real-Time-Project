@@ -29,29 +29,37 @@ public class CameraInterface extends Thread {
 	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 	private byte[] motionDetectStatus = new byte[1];
-	private String server, port;
-
-	public CameraInterface(String server, String port) {
+	private String server, receivePort, sendPort;
+	private long initialTimeDifference = -1;
+	public CameraInterface(String server, String receivePort, String sendPort) {
 		monitor = new ClientMonitor(); // The monitor between
-		gui = new GUI(server, Integer.parseInt(port),monitor);
+		gui = new GUI(server, Integer.parseInt(receivePort),monitor);
 		this.server = server;
-		this.port = port;
+		this.receivePort = receivePort;
+		this.sendPort = sendPort;
 	}
 
 	public void run() {
-		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(port), monitor);
+		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(receivePort), monitor);
 		clientReceive.start();
-		ClientSend clientSend = new ClientSend(server, Integer.parseInt(port),monitor);
+		ClientSend clientSend = new ClientSend(server, Integer.parseInt(sendPort),monitor);
 		clientSend.start();
 		while (true) {
 			try {
 				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
-				gui.refreshImage(jpeg);
-
+				gui.refreshImage(jpeg,getDelay(timeStamp));
+				gui.setMode(motionDetectStatus[0]);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private long getDelay(byte [] timeArray){
+		return System.currentTimeMillis() + initialTimeDifference + arrayToTimeConverter(timeArray);
+	}
+	private long arrayToTimeConverter(byte [] timeArray){
+		return 0;
 	}
 	
 }
@@ -61,8 +69,8 @@ class GUI extends JFrame {
 	private JButton btnDisconnect;
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
-	
-	private  ButtonGroup group;
+	private JLabel lbDelay;
+	private ButtonGroup group;
 	private boolean firstCall = true; 
 	private String server;
 	private int port;
@@ -78,9 +86,9 @@ class GUI extends JFrame {
 		
 		this.setTitle("Operating at port : " + port);
 		//The buttons are created
-		btnMovie = new JRadioButton("Movie", false);
+		btnMovie = new JRadioButton("Movie", true);
 		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
-		btnIdle = new JRadioButton("Idle", true);
+		btnIdle = new JRadioButton("Idle", false);
 		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
@@ -98,36 +106,52 @@ class GUI extends JFrame {
 		buttonPane.add(btnIdle);
 		buttonPane.add(Box.createHorizontalGlue());
 
+		//The labels are added to a panel
 		buttonPane.add(btnDisconnect);
+		lbDelay = new JLabel("Delay Time");
 		
+		JPanel labelPane = new JPanel();
+		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
+		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		labelPane.add(new JLabel("Delay Time : "));
+		labelPane.add(lbDelay);
 		
 		this.getContentPane().setLayout(new BorderLayout());
-		this.getContentPane().add(imagePanel, BorderLayout.NORTH);
+		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
+		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
 		this.pack();
 	}
 	
-
 	
+	public void setMode(byte b){
+		if(b == ClientMonitor.IDLE_MODE){
+			btnIdle.setSelected(true);
+			btnMovie.setSelected(false);
+		} else {
+			btnIdle.setSelected(false);
+			btnMovie.setSelected(true);
+		}
+	}
 	/**
 	 * Displays the sent image in the GUI, does not do this direct but
 	 * invokes the inner thread in Swing
 	 * 
 	 * @param image
 	 */
-	public void refreshImage(byte[] image) {
+	public void refreshImage(byte[] image, long delay) {
 		try {
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
+			lbDelay.setText(String.valueOf(delay));
 			SwingUtilities.invokeLater(new Runnable() {
 				//Show image when it is convenient
 				public void run() {
 					imagePanel.refresh(tempImgArray);
-					
 					pack();
 					setVisible(true);
 					setResizable(false);

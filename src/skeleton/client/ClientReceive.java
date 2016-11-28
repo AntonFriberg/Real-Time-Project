@@ -44,23 +44,17 @@ public class ClientReceive extends Thread {
 												// pictures
 		putLine(os, ""); // The request ends with an empty line
 
-		while (true) {
+		if (!monitor.shouldDisconnect()) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
 			System.out.println("HTTP server says '" + responseLine + "'.");
 
-			// Ignore the following header lines up to the final empty one.
-//			do {
-//				responseLine = getLine(is);
-//			} while (!(responseLine.equals("")));
-
-			//Read the inputstream
-			byte[] receivedData = new byte[131084];
+			// Read the inputstream
+			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
 			int bytesRead = readData(receivedData.length, receivedData);
-			
 
-			if (bytesRead >= AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
+			if (bytesRead == AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
 				// Load the JPEG
 				System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
 
@@ -71,10 +65,18 @@ public class ClientReceive extends Thread {
 				System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE, motionDetect,
 						0, 1);
 
+				// Puts the image in the monitor whith time Data and motion
+				// detect
 				monitor.putImage(jpeg, timeStamp, motionDetect[0]);
 			} else {
 				// Something went wrong
 			}
+
+			// Ignore the following header lines up to the final empty one.
+			do {
+				responseLine = getLine(is);
+			} while (!(responseLine.equals("")));
+
 			os.flush();
 
 		}
@@ -99,7 +101,7 @@ public class ClientReceive extends Thread {
 				bytesRead += status;
 				bytesLeft -= status;
 			}
-		} while (status > 0);		
+		} while (status > 0);
 		System.out.println("Received data (" + bytesRead + " bytes).");
 		return bytesRead;
 	}
