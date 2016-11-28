@@ -29,19 +29,20 @@ public class CameraInterface extends Thread {
 	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 	private byte[] motionDetectStatus = new byte[1];
-	private String server, port;
+	private String server, receivePort, sendPort;
 
-	public CameraInterface(String server, String port) {
+	public CameraInterface(String server, String receivePort, String sendPort) {
 		monitor = new ClientMonitor(); // The monitor between
-		gui = new GUI(server, Integer.parseInt(port),monitor);
+		gui = new GUI(server, Integer.parseInt(receivePort),monitor);
 		this.server = server;
-		this.port = port;
+		this.receivePort = receivePort;
+		this.sendPort = sendPort;
 	}
 
 	public void run() {
-		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(port), monitor);
+		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(receivePort), monitor);
 		clientReceive.start();
-		ClientSend clientSend = new ClientSend(server, Integer.parseInt(port),monitor);
+		ClientSend clientSend = new ClientSend(server, Integer.parseInt(sendPort),monitor);
 		clientSend.start();
 		while (true) {
 			try {

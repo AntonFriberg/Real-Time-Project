@@ -44,11 +44,12 @@ public class ClientReceive extends Thread {
 												// pictures
 		putLine(os, ""); // The request ends with an empty line
 
-		while (sock.isConnected()) {
+		while (!monitor.shouldDisconnect()) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
 			System.out.println("HTTP server says '" + responseLine + "'.");
+		
 
 			//Read the inputstream
 			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];

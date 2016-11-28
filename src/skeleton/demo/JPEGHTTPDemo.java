@@ -20,7 +20,7 @@ public class JPEGHTTPDemo {
 //		c.start();
 //		CameraInterface gui = new CameraInterface("localhost","6077");
 //		gui.start();
-		CameraController.main(new String[]{"localhost","6077"});
+		CameraController.main(new String[]{"localhost","6077","6078"});
 	}
 	
 	private static class Server1 extends Thread {

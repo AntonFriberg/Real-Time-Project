@@ -13,6 +13,7 @@ public class ClientMonitor {
 	private int currentMode = 0;
 	private boolean modeChanged;
 	private boolean hasImage;
+	private boolean receiveShouldDisconnect;
 
 	public ClientMonitor() {
 		hasImage = false;
@@ -78,10 +79,20 @@ public class ClientMonitor {
 	 *            the command that is to be changed
 	 */
 	public synchronized void setCommand(int newCommand) {
-		if (newCommand == 0 || newCommand == 1)
-			currentMode = newCommand;
+		if (newCommand == ClientMonitor.DISCONNECT) {
+			setDisconnect();
+		}
+		currentMode = newCommand;
 		modeChanged = true;
 		notifyAll();
+	}
+
+	private void setDisconnect() {
+		receiveShouldDisconnect = true;
+	}
+
+	public synchronized boolean shouldDisconnect() {
+		return receiveShouldDisconnect;
 	}
 
 }
