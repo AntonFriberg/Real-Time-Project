@@ -106,9 +106,6 @@ class GUI extends JFrame {
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
 		this.pack();
-		this.setVisible(true);
-
-		this.setSize(400, 314);
 	}
 	
 
@@ -130,17 +127,24 @@ class GUI extends JFrame {
 				//Show image when it is convenient
 				public void run() {
 					imagePanel.refresh(tempImgArray);
-
+					
+					pack();
+					setVisible(true);
+					setResizable(false);
 				}
 			});
 			
-			if (firstCall) {
-				//If it is the first call change the window
-				this.pack();
-				this.setVisible(true);
-				firstCall = false;
-				this.setResizable(false);
+			if(firstCall){
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run(){
+						pack();
+						setVisible(true);
+						firstCall = false;
+						setResizable(false);						
+					}
+				});
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
