@@ -1,6 +1,8 @@
 package skeleton.demo;
 
+import skeleton.server.CameraMonitor;
 import skeleton.server.JPEGHTTPServer;
+import skeleton.server.ServerSend;
 import skeleton.client.CameraController;
 //import skeleton.client.JPEGHTTPClient;
 import skeleton.client.CameraInterface;
@@ -8,10 +10,12 @@ import skeleton.client.CameraInterface;
 public class JPEGHTTPDemo {
 
 	public static void main(String[] args) {
-		Server1 s1 = new Server1();
-		Server2 s2 = new Server2();
-		s1.start();
-		s2.start();
+//		Server1 s1 = new Server1();
+//		Server2 s2 = new Server2();
+//		s1.start();
+//		s2.start();
+		CameraMonitor monitor = new CameraMonitor(6077);
+		new ServerSend(6077, "localhost",monitor).start();
 //		Client c = new Client();
 //		c.start();
 //		CameraInterface gui = new CameraInterface("localhost","6077");
