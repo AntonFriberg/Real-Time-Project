@@ -51,17 +51,14 @@ public class ClientReceive extends Thread {
 			System.out.println("HTTP server says '" + responseLine + "'.");
 
 			// Ignore the following header lines up to the final empty one.
-			do {
-				responseLine = getLine(is);
-			} while (!(responseLine.equals("")));
+//			do {
+//				responseLine = getLine(is);
+//			} while (!(responseLine.equals("")));
 
+			//Read the inputstream
 			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
 			int bytesRead = readData(receivedData.length, receivedData);
 			
-			byte[] receivedData2 = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
-
-			int bytesRead2 = readData(receivedData.length, receivedData);
-
 
 			if (bytesRead >= AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
 				// Load the JPEG
@@ -101,7 +98,7 @@ public class ClientReceive extends Thread {
 				bytesRead += status;
 				bytesLeft -= status;
 			}
-		} while (status >= 0);		
+		} while (status > 0);		
 		System.out.println("Received data (" + bytesRead + " bytes).");
 		return bytesRead;
 	}
