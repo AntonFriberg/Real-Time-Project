@@ -44,7 +44,7 @@ public class ClientReceive extends Thread {
 												// pictures
 		putLine(os, ""); // The request ends with an empty line
 
-		if (sock.isConnected()) {
+		while (true) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
@@ -56,7 +56,7 @@ public class ClientReceive extends Thread {
 //			} while (!(responseLine.equals("")));
 
 			//Read the inputstream
-			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
+			byte[] receivedData = new byte[131084];
 			int bytesRead = readData(receivedData.length, receivedData);
 			
 
@@ -76,8 +76,9 @@ public class ClientReceive extends Thread {
 				// Something went wrong
 			}
 			os.flush();
+
 		}
-		sock.close();
+		//sock.close();
 
 	}
 

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by Anton Friberg on 11/15/16.
@@ -16,76 +17,96 @@ public class ServerSend extends Thread{
      * thread for each camera.
      */
 
-    private Socket sock;
+    private ServerSocket serverSocket;
+    private Socket server;
     private InputStream is;
     private OutputStream os;
     private static final byte[] CRLF = { 13, 10};
-    private int sendPort;
+    private int port;
     private String client;
     private CameraMonitor cm;
 
     public ServerSend(int port, String client, CameraMonitor cm) {
-        this.sendPort = port;
+        this.port = port;
         this.client = client;
         this.cm = cm;
+        // Prepare connection
+        serverSocket = null;
     }
 
     public void run() {
-        // Prepare connection
-        ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(sendPort);
+            serverSocket = new ServerSocket(port);
+            serverSocket.setSoTimeout(180000);
+            System.out.println("HTTP server operating at port " + port + ".");
+            // Main loop
+            while (true) {
+                try {
+                    // The 'accept' method waits for a client to connect, then
+                    // returns a socket connected to that client.
+                    server = serverSocket.accept();
+                    System.out.println("Accepted connection: " + server);
+
+                    // The socket is bi-directional. It has an input stream to read
+                    // from and an output stream to write to. The InputStream can
+                    // be read from using read(...) and the OutputStream can be
+                    // written to using write(...). However, we use our own
+                    // getLine/putLine methods below.
+                    InputStream is = server.getInputStream();
+                    OutputStream os = server.getOutputStream();
+
+                    // Read the request
+                    String request = getLine(is);
+
+                    // The request is followed by some additional header lines,
+                    // followed by a blank line. Those header lines are ignored.
+                    String header;
+                    boolean cont;
+                    do {
+                        header = getLine(is);
+                        cont = !(header.equals(""));
+                    } while (cont);
+
+                    System.out.println("HTTP request '" + request
+                            + "' received.");
+
+                    if (request.substring(0, 4).equals("SRT ")) {
+                        while (true) {
+                            System.out.println("sending image");
+                            cm.sendImage(os);
+                            os.flush();
+                        }
+                    }
+
+                    //while (sendSocket.isConnected()) {
+                    //    cm.sendImage(os);
+                    //}
+
+                    os.flush();                      // Flush any remaining content
+                } catch (IOException e) {
+                    System.out.println("Caught exception " + e);
+                } finally {
+                    try {
+                        if (is != null) is.close();
+                        if (os != null) os.close();
+                        if (server != null) server.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        System.out.println("HTTP server operating at port " + sendPort + ".");
-
-        if (true) {
+        } finally {
             try {
-                // The 'accept' method waits for a client to connect, then
-                // returns a socket connected to that client.
-                Socket sendSocket = serverSocket.accept();
-
-                // The socket is bi-directional. It has an input stream to read
-                // from and an output stream to write to. The InputStream can
-                // be read from using read(...) and the OutputStream can be
-                // written to using write(...). However, we use our own
-                // getLine/putLine methods below.
-                InputStream is = sendSocket.getInputStream();
-                OutputStream os = sendSocket.getOutputStream();
-
-                // Read the request
-                String request = getLine(is);
-                
-                // The request is followed by some additional header lines,
-                // followed by a blank line. Those header lines are ignored.
-                String header;
-                boolean cont;
-                do {
-                    header = getLine(is);
-                    cont = !(header.equals(""));
-                } while (cont);
-
-                System.out.println("HTTP request '" + request
-                        + "' received.");
-
-                if (request.substring(0, 4).equals("SRT ")) {
-                    System.out.println("sending image");
-                    cm.takeImage();
-                    cm.sendImage(os);
-                }
-
-                //while (sendSocket.isConnected()) {
-                //    cm.sendImage(os);
-                //}
-
-                os.flush();                      // Flush any remaining content
-                sendSocket.close();	          // Disconnect from the client
-            }
-            catch (IOException e) {
-                System.out.println("Caught exception " + e);
+                if (serverSocket != null) serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
+
     }
 
     /**
