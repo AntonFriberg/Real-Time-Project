@@ -44,17 +44,17 @@ public class ClientReceive extends Thread {
 												// pictures
 		putLine(os, ""); // The request ends with an empty line
 
-		if (!monitor.shouldDisconnect()) {
+		while (!monitor.shouldDisconnect()) {
 			// Read the first line of the response (status line)
 			String responseLine;
 			responseLine = getLine(is);
 			System.out.println("HTTP server says '" + responseLine + "'.");
 
 			// Read the inputstream
-			byte[] receivedData = new byte[AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1];
+			byte[] receivedData = new byte[131084];
 			int bytesRead = readData(receivedData.length, receivedData);
 
-			if (bytesRead == AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
+			if (bytesRead >= AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
 				// Load the JPEG
 				System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
 
@@ -71,12 +71,6 @@ public class ClientReceive extends Thread {
 			} else {
 				// Something went wrong
 			}
-
-			// Ignore the following header lines up to the final empty one.
-			do {
-				responseLine = getLine(is);
-			} while (!(responseLine.equals("")));
-
 			os.flush();
 
 		}

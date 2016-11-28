@@ -16,7 +16,7 @@ public class SocketTest {
         CameraHandler cam = new CameraHandler(cm);
         cam.start();
         server.start();
-        ServerReceive serverRec = new ServerReceive(6078,"localhost",cam);
+        ServerReceive serverRec = new ServerReceive(6078,"localhost", cm);
         serverRec.start();
         CameraController.main(new String[]{"localhost","6077","6078"});
     }
