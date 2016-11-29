@@ -92,6 +92,7 @@ public class ServerReceive extends Thread {
 
                         System.out.println("Unsupported HTTP request!");
                     }
+                    
                     try {
                         sleep(100); // Should perhaps change to wait inside monitor (limits cpu time)
                     } catch (InterruptedException e) {

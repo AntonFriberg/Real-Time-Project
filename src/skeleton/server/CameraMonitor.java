@@ -21,6 +21,7 @@ public class CameraMonitor {
     long frameRate = MOTION_FRAMERATE;
     private byte[] imageBox; // The box we keep the latest image in
     private byte[] timeStampBox; // The box we keep the latest timestamp
+    private byte[] motionDetectBox;
     private boolean motionDetect = false; // false means idle
     private boolean hasImage;
     private AxisM3006V cam;
@@ -72,9 +73,11 @@ public class CameraMonitor {
     }
 
     public synchronized void sendImage(OutputStream os) throws IOException {
+    	motionDetectBox = (motionDetect) ? new byte[(byte) 1] : new byte[(byte) 0];
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + EOL.length];
         byte[] imgDataPacket = new byte[imageBox.length + EOL.length];
         byte[] tsDataPacket = new byte[timeStampBox.length + EOL.length];
+        byte[] motionDetectPacket = new byte[motionDetectBox.length + EOL.length];
         byte[] packet = new byte[imgCmdPacket.length + imgDataPacket.length + tsDataPacket.length];
         System.out.println("Constructed byte arrays");
 
@@ -101,16 +104,20 @@ public class CameraMonitor {
         System.arraycopy(timeStampBox, 0, tsDataPacket, 0, timeStampBox.length);
         System.arraycopy(EOL, 0, tsDataPacket, timeStampBox.length, EOL.length);
         System.out.println("copied image timestamp");
-
+        /**
+         * Put motionDetect data and EOL in motionDetect data packet
+         */
+        System.arraycopy(motionDetect, 0, motionDetectPacket, 0, motionDetectBox.length);
+        System.arraycopy(EOL, 0, motionDetectPacket, motionDetectBox.length, EOL.length);
+        System.out.println("copied byte for motion detected");
         /**
          * Merge data arrays into packet and send
          */
-        System.arraycopy(imgCmdPacket, 0, packet, 0, imgCmdPacket.length);
-        System.arraycopy(imgDataPacket, 0, packet, imgCmdPacket.length, imgDataPacket.length);
-        System.arraycopy(tsDataPacket, 0, packet, imgCmdPacket.length + imgDataPacket.length, tsDataPacket.length);
+
         os.write(imgCmdPacket, 0, imgCmdPacket.length);
         os.write(imgDataPacket, 0, imgDataPacket.length);
         os.write(tsDataPacket, 0, tsDataPacket.length);
+        os.write(motionDetectPacket, 0, motionDetectPacket.length);
         notifyAll();
     }
 
@@ -126,6 +133,7 @@ public class CameraMonitor {
     	return connected;
     }
     public synchronized boolean motionDetected(){
-    	return cam.motionDetected();
+    	motionDetect = cam.motionDetected();
+    	return motionDetect;
     }
 }
