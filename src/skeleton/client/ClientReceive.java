@@ -51,10 +51,10 @@ public class ClientReceive extends Thread {
 			System.out.println("HTTP server says '" + responseLine + "'.");
 
 			// Read the inputstream
-			byte[] receivedData = new byte[131084];
+			byte[] receivedData = new byte[ClientMonitor.REC_DATA];
 			int bytesRead = readData(receivedData.length, receivedData);
 
-			if (bytesRead >= AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 1) {
+			if (bytesRead >= ClientMonitor.REC_DATA) {
 				// Load the JPEG
 				System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
 
