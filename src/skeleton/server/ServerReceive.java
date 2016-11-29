@@ -70,18 +70,33 @@ public class ServerReceive extends Thread {
 
 				System.out.println("HTTP request '" + request + "' received.");
 
+                /**
+                 * Main loop that listens for commands to change mode or if camera has detected motion
+                 */
                 while(cm.connected()) {
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
-                    if (request.substring(0, 4).equals("CMM ")) {
-                        // Got a CMM request (Change Mode Motion).
-                        // Respond by changing the camera mode.
+                    if (cm.motionDetected() || request.substring(0, 4).equals("CMM ")) {
+                        /**
+                         * Got a CMM request (Change Mode Motion)
+                         * or our camera detected motion, respond
+                         * by changing the mode and frame rate to
+                         * motion.
+                         */
                         cm.activateMotion(true);
                     } else if (request.substring(0, 4).equals("CMI ")) {
-                        // Got a CMI request (Change Mode Idle).
-                        // Respond by changing the camera mode.
+                        /**
+                         * Got a CMI request (Change Mode Idle),
+                         * respond by changing mode and frame
+                         * rate to idle.
+                         */
                         cm.activateMotion(false);
                     }else if (request.substring(0, 4).equals("DSC ")){
+                        /**
+                         * Got a DSC request (Disconnect)
+                         * respond by propagating the closure
+                         * of sockets via the monitor
+                         */
                         cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
