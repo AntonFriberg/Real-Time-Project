@@ -83,7 +83,6 @@ public class ServerReceive extends Thread {
                          * by changing the mode and frame rate to
                          * motion.
                          */
-                        System.out.println("Motion: " + cm.motionDetected());
                         cm.activateMotion(true);
                     } else if (request.substring(0, 4).equals("CMI ")) {
                         /**
