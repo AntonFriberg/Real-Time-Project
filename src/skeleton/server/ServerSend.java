@@ -47,6 +47,9 @@ public class ServerSend extends Thread{
                     server = serverSocket.accept();
                     System.out.println("Accepted connection: " + server);
 
+                    // Tell the monitor that we are connected
+                    cm.connect();
+
                     // The socket is bi-directional. It has an input stream to read
                     // from and an output stream to write to. The InputStream can
                     // be read from using read(...) and the OutputStream can be
@@ -71,17 +74,13 @@ public class ServerSend extends Thread{
                             + "' received.");
 
                     if (request.substring(0, 4).equals("SRT ")) {
-                        while (true) {
+                        // Until the client tells us to disconnect
+                        while (cm.connected()) {
                             System.out.println("sending image");
                             cm.sendImage(os);
                             os.flush();
                         }
                     }
-
-                    //while (sendSocket.isConnected()) {
-                    //    cm.sendImage(os);
-                    //}
-
                     os.flush();                      // Flush any remaining content
                 } catch (IOException e) {
                     System.out.println("Caught exception " + e);

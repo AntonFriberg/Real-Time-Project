@@ -45,6 +45,8 @@ public class ServerReceive extends Thread {
 				// The 'accept' method waits for a client to connect, then
 				// returns a socket connected to that client.
 				Socket receiveSocket = serverSocket.accept();
+                // Tell the monitor that we are connected
+				cm.connect();
 
 				// The socket is bi-directional. It has an input stream to read
 				// from and an output stream to write to. The InputStream can
@@ -68,27 +70,36 @@ public class ServerReceive extends Thread {
 
 				System.out.println("HTTP request '" + request + "' received.");
 
-				// Interpret the request. Complain about everything but GET.
-				// Ignore the file name.
-				if (request.substring(0, 4).equals("CMM ")) {
-					// Got a CMM request (Change Mode Motion).
-					// Respond by changing the camera mode.
-					cm.activateMotion(true);
-				} else if (request.substring(0, 4).equals("CMI ")) {
-					// Got a CMI request (Change Mode Idle).
-					// Respond by changing the camera mode.
-					cm.activateMotion(false);
-				}else if (request.substring(0, 4).equals("DSC ")){
-						cm.disconnect();			
-				} else {
-					// Got some other request. Respond with an error message.
-					putLine(os, "HTTP/1.0 501 Method not implemented");
-					putLine(os, "Content-Type: text/plain");
-					putLine(os, "");
-					putLine(os, "No can do. Request '" + request + "' not understood.");
+                while(cm.connected()) {
+                    // Interpret the request. Complain about everything but GET.
+                    // Ignore the file name.
+                    if (request.substring(0, 4).equals("CMM ")) {
+                        // Got a CMM request (Change Mode Motion).
+                        // Respond by changing the camera mode.
+                        cm.activateMotion(true);
+                    } else if (request.substring(0, 4).equals("CMI ")) {
+                        // Got a CMI request (Change Mode Idle).
+                        // Respond by changing the camera mode.
+                        cm.activateMotion(false);
+                    }else if (request.substring(0, 4).equals("DSC ")){
+                        cm.disconnect();
+                    } else {
+                        // Got some other request. Respond with an error message.
+                        putLine(os, "HTTP/1.0 501 Method not implemented");
+                        putLine(os, "Content-Type: text/plain");
+                        putLine(os, "");
+                        putLine(os, "No can do. Request '" + request + "' not understood.");
 
-					System.out.println("Unsupported HTTP request!");
-				}
+                        System.out.println("Unsupported HTTP request!");
+                    }
+                    try {
+                        sleep(100); // Should perhaps change to wait inside monitor (limits cpu time)
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+
 
 				os.flush(); // Flush any remaining content
 				receiveSocket.close(); // Disconnect from the client

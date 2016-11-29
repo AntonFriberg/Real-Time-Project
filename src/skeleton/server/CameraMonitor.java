@@ -24,6 +24,7 @@ public class CameraMonitor {
     private boolean motionDetect = false; // false means idle
     private boolean hasImage;
     private AxisM3006V cam;
+    private boolean connected = false;
 
     /**
      *
@@ -42,26 +43,6 @@ public class CameraMonitor {
         }
         takeImage();
     }
-
-    /**
-    public synchronized void sendImage(byte[] image) throws InterruptedException {
-        while(hasImage) wait();
-        System.arraycopy(image, 0, imageBox, image.length);
-        hasImage = true;
-     }
-
-     public synchronized void getImage(byte[] image) throws InterruptedException {
-     while(!hasImage) wait();
-        notifyAll();
-        System.arraycopy(imageBox, 0, image, image.length);
-        hasImage = false;
-        notifyAll();
-    }
-
-    synchronized void takeImage() {
-        // Method for taking image.
-    }
-    */
 
     /**
      * Synchronized method that switches camera mode.
@@ -132,13 +113,16 @@ public class CameraMonitor {
         os.write(tsDataPacket, 0, tsDataPacket.length);
         notifyAll();
     }
-    
-    public synchronized void disconnect() {
-    	
-    
+
+    public synchronized void connect() {
+        connected = true;
     }
     
-    public synchronized boolean connected(boolean motionDetect) {
-    	return false;
+    public synchronized void disconnect() {
+    	connected = false;
+    }
+    
+    public synchronized boolean connected() {
+    	return connected;
     }
 }
