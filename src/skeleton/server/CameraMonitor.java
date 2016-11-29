@@ -18,7 +18,7 @@ public class CameraMonitor {
     private static long MOTION_FRAMERATE = 40;
     private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
     private static final byte[] EOL = "\r\n".getBytes();
-    long frameRate = MOTION_FRAMERATE;
+    long frameRate = IDLE_FRAMERATE;
     private byte[] imageBox; // The box we keep the latest image in
     private byte[] timeStampBox; // The box we keep the latest timestamp
     private byte[] motionDetectBox;
@@ -76,7 +76,7 @@ public class CameraMonitor {
         byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
     	motionDetectBox = new byte[1];
         motionDetectBox[0] = mode;
-        System.out.println(motionDetectBox.length);
+        System.out.println((int) motionDetectBox[0]);
         try {
             wait(100000);
         } catch (InterruptedException e) {
