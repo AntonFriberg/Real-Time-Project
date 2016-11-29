@@ -93,7 +93,7 @@ public class CameraMonitor {
             e.printStackTrace();
         }
         System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
-        //System.arraycopy(EOL, 0, imgDataPacket, imageBox.length, EOL.length);
+        System.arraycopy(EOL, 0, imgDataPacket, imageBox.length, EOL.length);
         System.out.println("copied image data");
         /**
          * Put timestamp data and EOL in timestamp data packet
