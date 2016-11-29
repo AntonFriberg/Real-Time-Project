@@ -125,4 +125,7 @@ public class CameraMonitor {
     public synchronized boolean connected() {
     	return connected;
     }
+    public synchronized boolean motionDetected(){
+    	return cam.motionDetected();
+    }
 }
