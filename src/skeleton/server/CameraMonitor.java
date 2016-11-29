@@ -73,12 +73,20 @@ public class CameraMonitor {
     }
 
     public synchronized void sendImage(OutputStream os) throws IOException {
-    	motionDetectBox = (motionDetect) ? new byte[(byte) 1] : new byte[(byte) 0];
+        byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
+    	motionDetectBox = new byte[1];
+        motionDetectBox[0] = mode;
+        System.out.println(motionDetectBox.length);
+        try {
+            wait(100000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + EOL.length];
         byte[] imgDataPacket = new byte[imageBox.length + EOL.length];
         byte[] tsDataPacket = new byte[timeStampBox.length + EOL.length];
         byte[] motionDetectPacket = new byte[motionDetectBox.length + EOL.length];
-        byte[] packet = new byte[imgCmdPacket.length + imgDataPacket.length + tsDataPacket.length];
         System.out.println("Constructed byte arrays");
 
         /**
@@ -96,7 +104,7 @@ public class CameraMonitor {
             e.printStackTrace();
         }
         System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
-        //System.arraycopy(EOL, 0, imgDataPacket, imageBox.length, EOL.length);
+        System.arraycopy(EOL, 0, imgDataPacket, imageBox.length, EOL.length);
         System.out.println("copied image data");
         /**
          * Put timestamp data and EOL in timestamp data packet
@@ -107,13 +115,12 @@ public class CameraMonitor {
         /**
          * Put motionDetect data and EOL in motionDetect data packet
          */
-        System.arraycopy(motionDetect, 0, motionDetectPacket, 0, motionDetectBox.length);
+        System.arraycopy(motionDetectBox, 0, motionDetectPacket, 0, motionDetectBox.length);
         System.arraycopy(EOL, 0, motionDetectPacket, motionDetectBox.length, EOL.length);
         System.out.println("copied byte for motion detected");
         /**
          * Merge data arrays into packet and send
          */
-
         os.write(imgCmdPacket, 0, imgCmdPacket.length);
         os.write(imgDataPacket, 0, imgDataPacket.length);
         os.write(tsDataPacket, 0, tsDataPacket.length);

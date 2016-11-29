@@ -19,7 +19,7 @@ public class CameraHandler extends Thread{
         while(true) {
             while(!cm.connected()) {
                 try {
-                    cm.wait(100);
+                    sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
