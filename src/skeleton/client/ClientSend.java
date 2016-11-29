@@ -16,8 +16,8 @@ public class ClientSend extends Thread {
 	private int port;
 	private String server;
 	private ClientMonitor monitor;
-	public static final String MOTION_OFF = "MTN 0 ";
-	public static final String MOTION_ON = "MTN 1 ";
+	public static final String MOTION_OFF = "CMI ";
+	public static final String MOTION_ON = "CMM ";
 	public static final String DISCONNECT = "DSC ";
 
 	public ClientSend(String server, int port, ClientMonitor monitor) {

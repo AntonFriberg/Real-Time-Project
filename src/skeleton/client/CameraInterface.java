@@ -51,6 +51,7 @@ public class CameraInterface extends Thread {
 				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
 				gui.refreshImage(jpeg, getDelay(timeStamp));
 				gui.setMode(motionDetectStatus[0]);
+				System.out.println(motionDetectStatus[0]);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
