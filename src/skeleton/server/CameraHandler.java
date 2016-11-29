@@ -17,6 +17,13 @@ public class CameraHandler extends Thread{
 
     public void run() {
         while(true) {
+            while(!cm.connected()) {
+                try {
+                    cm.wait(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             cm.takeImage();
         }
     }
