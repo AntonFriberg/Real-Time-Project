@@ -78,6 +78,8 @@ public class ServerReceive extends Thread {
 					// Got a CMI request (Change Mode Idle).
 					// Respond by changing the camera mode.
 					cm.activateMotion(false);
+				}else if (request.substring(0, 4).equals("DSC ")){
+						cm.disconnect();			
 				} else {
 					// Got some other request. Respond with an error message.
 					putLine(os, "HTTP/1.0 501 Method not implemented");

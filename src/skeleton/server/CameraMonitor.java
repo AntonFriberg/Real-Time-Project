@@ -132,4 +132,13 @@ public class CameraMonitor {
         os.write(tsDataPacket, 0, tsDataPacket.length);
         notifyAll();
     }
+    
+    public synchronized void disconnect() {
+    	
+    
+    }
+    
+    public synchronized boolean connected(boolean motionDetect) {
+    	return false;
+    }
 }
