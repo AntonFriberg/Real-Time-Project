@@ -6,14 +6,16 @@ public class ClientMonitor {
 	private byte[] imgBuffer;
 	private byte[] timeStampBuffer;
 	private byte[] motionDetectBuffer;
-
+	
 	public static final int IDLE_MODE = 0;
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
+	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + 4;
 	private int currentMode = 0;
 	private boolean modeChanged;
 	private boolean hasImage;
 	private boolean receiveShouldDisconnect;
+	
 
 	public ClientMonitor() {
 		hasImage = false;
@@ -49,6 +51,7 @@ public class ClientMonitor {
 	public synchronized void getImage(byte[] image, byte[] timeStamp, byte[] motionDetect) throws InterruptedException {
 		while (!hasImage)
 			wait();
+	
 		System.arraycopy(imgBuffer, 0, image, 0, imgBuffer.length);
 		System.arraycopy(timeStampBuffer, 0, timeStamp, 0, timeStampBuffer.length);
 		motionDetect[0] = motionDetectBuffer[0];
@@ -93,10 +96,12 @@ public class ClientMonitor {
 
 	/**
 	 * Notifies the recieving thread that it should cancel receiving images
+	 * 
 	 * @return
 	 */
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
+
 
 }
