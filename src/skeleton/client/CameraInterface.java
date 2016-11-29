@@ -18,6 +18,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
@@ -31,7 +32,6 @@ public class CameraInterface extends Thread {
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 	private byte[] motionDetectStatus = new byte[1];
 	private String server, receivePort, sendPort;
-	private long initialTimeDifference = -1;
 
 	public CameraInterface(String server, String receivePort, String sendPort) {
 		monitor = new ClientMonitor(); // The monitor between
@@ -58,21 +58,15 @@ public class CameraInterface extends Thread {
 	}
 
 	private long getDelay(byte[] timeArray) {
-		convertTime(timeArray);
-		return System.currentTimeMillis();
+		return System.currentTimeMillis() - convertTime(timeArray);
 	}
 
-	public static void convertTime(byte[] timeArray) {
-		 long stime = System.currentTimeMillis();
-		 int index = 0;
-		 timeArray[index++] = (byte) ((stime & 0xff00000000000000L) >> 56);
-		 timeArray[index++] = (byte) ((stime & 0x00ff000000000000L) >> 48);
-		 timeArray[index++] = (byte) ((stime & 0x0000ff0000000000L) >> 40);
-		 timeArray[index++] = (byte) ((stime & 0x000000ff00000000L) >> 32);
-		 timeArray[index++] = (byte) ((stime & 0x00000000ff000000L) >> 24);
-		 timeArray[index++] = (byte) ((stime & 0x0000000000ff0000L) >> 16);
-		 timeArray[index++] = (byte) ((stime & 0x000000000000ff00L) >> 8);
-		 timeArray[index++] = (byte) ((stime & 0x00000000000000ffL));
+	private long convertTime(byte[] timeArray) {
+		long time = 0;
+		for (int i = 0; i < timeArray.length; i++) {
+			time += ((long) timeArray[i] & 0xffL) << (8 * (7 - i));
+		}
+		return time;
 	}
 
 }
@@ -80,6 +74,7 @@ public class CameraInterface extends Thread {
 class GUI extends JFrame {
 	private ImagePanel imagePanel;
 	private JButton btnDisconnect;
+	private JButton btnConnect;
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
 	private JLabel lbDelay;
@@ -105,6 +100,8 @@ class GUI extends JFrame {
 		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
+		btnConnect = new JButton("Connect");
+		btnConnect.addActionListener(new ButtonConnectHandler(this));
 
 		// Adds the radiobutton to a group
 		ButtonGroup group = new ButtonGroup();
@@ -119,10 +116,11 @@ class GUI extends JFrame {
 		buttonPane.add(btnIdle);
 		buttonPane.add(Box.createHorizontalGlue());
 
-		// The labels are added to a panel
 		buttonPane.add(btnDisconnect);
+		buttonPane.add(btnConnect);
 		lbDelay = new JLabel("Delay Time");
 
+		// The labels are added to a panel
 		JPanel labelPane = new JPanel();
 		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
@@ -210,6 +208,30 @@ class ImagePanel extends JPanel {
 		getToolkit().prepareImage(theImage, -1, -1, null);
 		icon.setImage(theImage);
 		icon.paintIcon(this, this.getGraphics(), 5, 5);
+	}
+}
+
+class ButtonConnectHandler implements ActionListener {
+	GUI gui;
+
+	public ButtonConnectHandler(GUI gui) {
+		this.gui = gui;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object[] possibilities = { "6077", "6078", "6079" };
+		String s = (String) JOptionPane.showInputDialog(gui, "Choose Port:\n", "Connect to camera",
+				JOptionPane.PLAIN_MESSAGE, null, possibilities, "6077");
+
+		// If a string was returned, say so.
+		if ((s != null) && (s.length() > 0)) {
+			// setLabel("Green eggs and... " + s + "!");
+			return;
+		}
+
+		// If you're here, the return value was null/empty.
+		// setLabel("Come on, finish the sentence!");
 	}
 }
 
