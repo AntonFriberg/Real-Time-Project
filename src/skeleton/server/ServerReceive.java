@@ -56,33 +56,36 @@ public class ServerReceive extends Thread {
 				InputStream is = receiveSocket.getInputStream();
 				OutputStream os = receiveSocket.getOutputStream();
 
-				// Read the request
-				String request = getLine(is);
-
-				// The request is followed by some additional header lines,
-				// followed by a blank line. Those header lines are ignored.
-				String header;
-				boolean cont;
-				do {
-					header = getLine(is);
-					cont = !(header.equals(""));
-				} while (cont);
-
-				System.out.println("HTTP request '" + request + "' received.");
-
                 /**
                  * Main loop that listens for commands to change mode or if camera has detected motion
                  */
                 while(cm.connected()) {
+				    // Read the request
+				    String request = getLine(is);
+
+				    // The request is followed by some additional header lines,
+				    // followed by a blank line. Those header lines are ignored.
+				    String header;
+				    boolean cont;
+				    do {
+				    	header = getLine(is);
+				    	cont = !(header.equals(""));
+				    } while (cont);
+
+				    System.out.println("HTTP request '" + request + "' received.");
+
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
-                    if (cm.motionDetected() || request.substring(0, 4).equals("CMM ")) {
+                    boolean motion = cm.motionDetected();
+                    if (motion || request.substring(0, 4).equals("CMM ")) {
                         /**
                          * Got a CMM request (Change Mode Motion)
                          * or our camera detected motion, respond
                          * by changing the mode and frame rate to
                          * motion.
                          */
+                        System.out.println(request);
+                        System.out.println("MOTION ACTIVATE" + motion);
                         cm.activateMotion(true);
                     } else if (request.substring(0, 4).equals("CMI ")) {
                         /**
@@ -90,6 +93,7 @@ public class ServerReceive extends Thread {
                          * respond by changing mode and frame
                          * rate to idle.
                          */
+                    	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
                     }else if (request.substring(0, 4).equals("DSC ")){
                         /**
@@ -97,15 +101,17 @@ public class ServerReceive extends Thread {
                          * respond by propagating the closure
                          * of sockets via the monitor
                          */
+                        System.out.println("DISCONNECT SOCKETS");
+                        System.out.println("Received DSC");
                         cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
-                        putLine(os, "HTTP/1.0 501 Method not implemented");
-                        putLine(os, "Content-Type: text/plain");
-                        putLine(os, "");
-                        putLine(os, "No can do. Request '" + request + "' not understood.");
-
-                        System.out.println("Unsupported HTTP request!");
+//                        putLine(os, "HTTP/1.0 501 Method not implemented");
+//                        putLine(os, "Content-Type: text/plain");
+//                        putLine(os, "");
+//                        putLine(os, "No can do. Request '" + request + "' not understood.");
+//
+//                        System.out.println("Unsupported HTTP request!");
                     }
                     
                     try {

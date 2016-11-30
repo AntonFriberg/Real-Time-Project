@@ -27,47 +27,40 @@ public class ClientSend extends Thread {
 	}
 
 	public void run() {
-		while(true){
-			try {
-				int newCommand = monitor.getCommand();
-				sendCommand(newCommand);
-			} catch (Exception e) {
-				System.out.println("Connection Error");
-			}			
+		try {
+			sendCommand();
+		} catch (Exception e) {
+			System.out.println("Connection Error");
 		}
+
 	}
 
-	private void sendCommand(int newCommand) throws UnknownHostException, IOException {
+	private void sendCommand() throws UnknownHostException, IOException, InterruptedException {
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
 
-		if(newCommand == ClientMonitor.IDLE_MODE){
-			putLine(os, MOTION_OFF); // Start the transmission of pictures
-			putLine(os, ""); // The request ends with an empty line
-		} else if(newCommand == ClientMonitor.MOVIE_MODE){
-			putLine(os, MOTION_ON); // Start the transmission of pictures
-			putLine(os, ""); // The request ends with an empty line
-		} else {
-			putLine(os, DISCONNECT); // Start the transmission of pictures
-			putLine(os, ""); // The request ends with an empty line
+		while (sock.isConnected()) {
+			int newCommand = monitor.getCommand();
+			System.out.println("Sending + : ");
+			if (newCommand == ClientMonitor.IDLE_MODE) {
+				System.out.println(MOTION_OFF);
+				putLine(os, MOTION_OFF); // Start the transmission of pictures
+				putLine(os, ""); // The request ends with an empty line
+			} else if (newCommand == ClientMonitor.MOVIE_MODE) {
+				System.out.println(MOTION_OFF);
+				putLine(os, MOTION_ON); // Start the transmission of pictures
+				putLine(os, ""); // The request ends with an empty line
+			} else {
+				System.out.println(MOTION_OFF);
+				putLine(os, DISCONNECT); // Start the transmission of pictures
+				putLine(os, ""); // The request ends with an empty line
+			}
+			os.flush();
 		}
-		
-		// Read the first line of the response (status line)
-		String responseLine;
-		responseLine = getLine(is);
-		System.out.println("HTTP server says '" + responseLine + "'.");
-
-		// Ignore the following header lines up to the final empty one.
-		do {
-			responseLine = getLine(is);
-		} while (!(responseLine.equals("")));
-
-		
-		os.flush();
 		sock.close();
 	}
-	
+
 	/**
 	 * Read a line from InputStream 's', terminated by CRLF. The CRLF is not
 	 * included in the returned string.
