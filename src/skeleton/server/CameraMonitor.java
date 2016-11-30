@@ -26,6 +26,7 @@ public class CameraMonitor {
     private boolean hasImage;
     private AxisM3006V cam;
     private boolean connected = false;
+    private int count;
 
     /**
      *
@@ -140,7 +141,11 @@ public class CameraMonitor {
     	return connected;
     }
     public synchronized boolean motionDetected(){
-    	motionDetect = cam.motionDetected();
-    	return motionDetect;
+    	if (cam.motionDetected()) {
+    		count++;
+    	} else {
+    		count = 0;
+    	}
+    	return (count >= 10); 
     }
 }
