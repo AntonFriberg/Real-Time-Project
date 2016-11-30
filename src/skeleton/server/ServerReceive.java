@@ -101,12 +101,12 @@ public class ServerReceive extends Thread {
                         cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
-                        putLine(os, "HTTP/1.0 501 Method not implemented");
-                        putLine(os, "Content-Type: text/plain");
-                        putLine(os, "");
-                        putLine(os, "No can do. Request '" + request + "' not understood.");
-
-                        System.out.println("Unsupported HTTP request!");
+//                        putLine(os, "HTTP/1.0 501 Method not implemented");
+//                        putLine(os, "Content-Type: text/plain");
+//                        putLine(os, "");
+//                        putLine(os, "No can do. Request '" + request + "' not understood.");
+//
+//                        System.out.println("Unsupported HTTP request!");
                     }
                     
                     try {
