@@ -27,6 +27,7 @@ public class CameraMonitor {
     private AxisM3006V cam;
     private boolean connected = false;
     private int count;
+    private static int MOTION_DETECTED_DELAY = 10;
 
     /**
      *
@@ -141,11 +142,9 @@ public class CameraMonitor {
     	return connected;
     }
     public synchronized boolean motionDetected(){
-    	if (cam.motionDetected()) {
-    		count++;
-    	} else {
-    		count = 0;
-    	}
-    	return (count >= 10); 
+    	motionDetect = cam.motionDetected();
+    	return motionDetect;
+    	//count = (cam.motionDetected()) ? (count + 1) : 0;
+    	//return (count >= MOTION_DETECTED_DELAY); 
     }
 }
