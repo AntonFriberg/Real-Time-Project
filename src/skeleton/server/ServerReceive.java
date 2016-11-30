@@ -91,6 +91,7 @@ public class ServerReceive extends Thread {
                          * respond by changing mode and frame
                          * rate to idle.
                          */
+                    	System.out.println("Received CMI");
                         cm.activateMotion(false);
                     }else if (request.substring(0, 4).equals("DSC ")){
                         /**
@@ -98,6 +99,7 @@ public class ServerReceive extends Thread {
                          * respond by propagating the closure
                          * of sockets via the monitor
                          */
+                    	System.out.println("Received DSC");
                         cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
