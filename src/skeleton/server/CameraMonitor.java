@@ -38,10 +38,12 @@ public class CameraMonitor {
         cam.setProxy("argus-1.student.lth.se", port);
         imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
         timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
+        System.out.println("Trying to connect to camera");
         if (!cam.connect()) {
             System.out.println("Failed to connect to camera!");
             System.exit(1);
         }
+        System.out.println("Connected to camera");
         takeImage();
     }
 
@@ -56,20 +58,23 @@ public class CameraMonitor {
         frameRate = (motionDetect) ? MOTION_FRAMERATE: IDLE_FRAMERATE;
     }
 
+    /**
+     *
+     */
     public synchronized void takeImage() {
-        long currentTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() < currentTime + frameRate) {
-            try {
-                //System.out.println("Waiting to take picture.");
-                wait(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         cam.getJPEG(imageBox, 0); // put image in imageBox
         cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
         //cam.close();
         notifyAll();
+        long timestamp = System.currentTimeMillis();
+        while (System.currentTimeMillis() < timestamp + frameRate) {
+            try {
+                //System.out.println("Waiting to take picture.");
+                wait(MOTION_FRAMERATE);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public synchronized void sendImage(OutputStream os) throws IOException {
