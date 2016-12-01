@@ -76,7 +76,7 @@ public class ServerReceive extends Thread {
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
                     boolean motion = cm.motionDetected();
-                    if (motion || request.substring(0, 4).equals("CMM ")) {
+                    if (motion || request.substring(0, 4).equals(MOTION_MODE)) {
                         // Got a CMM request (Change Mode Motion)
                         // or our camera detected motion, respond
                         // by changing the mode and frame rate to
@@ -84,13 +84,13 @@ public class ServerReceive extends Thread {
                         System.out.println(request);
                         System.out.println("MOTION ACTIVATE" + motion);
                         cm.activateMotion(true);
-                    } else if (request.substring(0, 4).equals("CMI ")) {
+                    } else if (request.substring(0, 4).equals(IDLE_MODE)) {
                         // Got a CMI request (Change Mode Idle),
                         // respond by changing mode and frame
                         // rate to idle.
                     	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
-                    }else if (request.substring(0, 4).equals("DSC ")){
+                    }else if (request.substring(0, 4).equals(DISCONNECT)){
                         // Got a DSC request (Disconnect)
                         // respond by propagating the closure
                         // of sockets via the monitor
@@ -122,7 +122,6 @@ public class ServerReceive extends Thread {
 	private static String getLine(InputStream s) throws IOException {
 		boolean done = false;
 		String result = "";
-
 		while (!done) {
 			int ch = s.read(); // Read
 			if (ch <= 0 || ch == 10) {
@@ -133,7 +132,6 @@ public class ServerReceive extends Thread {
 				result += (char) ch;
 			}
 		}
-
 		return result;
 	}
 }
