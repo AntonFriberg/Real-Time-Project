@@ -4,13 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -25,14 +18,13 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 
-import se.lth.cs.eda040.fakecamera.AxisM3006V;
-
-public class GUI extends JFrame {
+public class GUI extends JPanel {
+	
 	private ImagePanel imagePanel;
 	private JButton btnDisconnect;
 	private JButton btnConnect;
-	private JRadioButton btnMovie;
-	private JRadioButton btnIdle;
+	private JButton btnMotionON;
+	private JButton btnMotionOFF;
 	private JRadioButton btnAuto;
 	private JLabel lbDelay;
 	private JLabel lbMode;
@@ -40,19 +32,20 @@ public class GUI extends JFrame {
 	private boolean firstCall = true;
 	private ClientMonitor monitor;
 	private int cameraID;
-	public GUI(int port, ClientMonitor monitor,int cameraID) {
+
+	public GUI(int port, ClientMonitor monitor, int cameraID) {
 		super();
 		this.cameraID = cameraID;
 		this.monitor = monitor;
 		// this.server = server;
 		imagePanel = new ImagePanel();
 
-		this.setTitle("Operating at port : " + port);
+//		this.setTitle("Operating at port : " + port);
 		// The buttons are created
-		btnMovie = new JRadioButton("Movie", false);
-		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
-		btnIdle = new JRadioButton("Idle", true);
-		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
+		btnMotionON = new JButton("Motion On" + "");
+		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
+		btnMotionOFF = new JButton("Motion Off");
+		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
 		btnAuto = new JRadioButton("Auto", true);
 		btnAuto.addActionListener(new ButtonHandler(this, ClientMonitor.AUTO_MODE));
 		btnDisconnect = new JButton("Disconnect");
@@ -60,18 +53,13 @@ public class GUI extends JFrame {
 		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ButtonConnectHandler(this));
 
-		// Adds the radiobutton to a group
-		ButtonGroup group = new ButtonGroup();
-		group.add(btnMovie);
-		group.add(btnIdle);
-
 		// The buttons are added to a panel
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		buttonPane.add(btnAuto);
-		buttonPane.add(btnMovie);
-		buttonPane.add(btnIdle);
+		buttonPane.add(btnMotionON);
+		buttonPane.add(btnMotionOFF);
 		buttonPane.add(Box.createHorizontalGlue());
 
 		buttonPane.add(btnDisconnect);
@@ -89,12 +77,22 @@ public class GUI extends JFrame {
 		labelPane.add(new JLabel("Motion : "));
 		labelPane.add(lbMode);
 
-		this.getContentPane().setLayout(new BorderLayout());
-		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
-		this.getContentPane().add(labelPane, BorderLayout.NORTH);
-		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		this.setLocationRelativeTo(null);
-		this.pack();
+		this.setLayout(new BorderLayout());
+		this.setLayout(new BorderLayout());
+		this.add(imagePanel, BorderLayout.CENTER);
+		this.add(labelPane, BorderLayout.NORTH);
+		this.add(buttonPane, BorderLayout.SOUTH);
+//		
+//		this.getContentPane().setLayout(new BorderLayout());
+//		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
+//		this.getContentPane().add(labelPane, BorderLayout.NORTH);
+//		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
+//		this.setLocationRelativeTo(null);
+//		this.pack();
+	}
+	
+	public JPanel getFrame(){
+		return this;
 	}
 
 	public void setMode(boolean motion) {
@@ -111,35 +109,36 @@ public class GUI extends JFrame {
 	 * 
 	 * @param image
 	 */
-	public void refreshImage(byte[] image, long waitFor, long delay) {
+	public void refreshImage(byte[] image, long waitFor, long delay, boolean motion) {
 		try {
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
-			final byte[] tempImgArray = new byte[image.length];
+			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			lbDelay.setText(String.valueOf(delay));
-		
+			if (motion) {
+				lbMode.setText("ON");
+			} else {
+				lbMode.setText("OFF");
+			}
 			SwingUtilities.invokeLater(new Runnable() {
 				// Show image when it is convenient
 				public void run() {
 					imagePanel.refresh(tempImgArray);
-					pack();
-					setVisible(true);
-					setResizable(false);
 				}
 			});
 
-			if (firstCall) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						pack();
-						setVisible(true);
-						firstCall = false;
-						setResizable(false);
-					}
-				});
-			}
+//			if (firstCall) {
+//				SwingUtilities.invokeLater(new Runnable() {
+//					public void run() {
+//						pack();
+//						setVisible(true);
+//						firstCall = false;
+//						setResizable(false);
+//					}
+//				});
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
