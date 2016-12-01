@@ -71,6 +71,7 @@ public class GuiController extends Thread {
 				Thread.sleep(50);
 			}
 		}
+		System.out.println("GOT IMAGE");
 		camReadyForDisplayList.add(camWaitingForImgList.remove(index));
 	}
 
@@ -84,22 +85,16 @@ public class GuiController extends Thread {
 			received = tempCam.getMonitor().getImage(tempCam);
 			if (received) {
 				camReadyForDisplayList.add(camWaitingForImgList.remove(index));
+				System.out.println("GOT ANOTHER IMAGE");
 				size--;
 			} else {
 				index++;
 			}
 		}
+		
+		System.out.println("Ready for display");
 	}
-
-	// We want to set the images taken shown relative to the others
-	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
-		long takenTime = cam.getTimeStamp();
-		if (firstImgTaken > takenTime) {
-			firstImgTaken = takenTime;
-		}
-		return firstImgTaken;
-	}
-
+	
 	private long getRelativeTime(long firstImgTaken) {
 		for (Camera cam : camReadyForDisplayList) {
 			firstImgTaken = calculateRelativeTime(firstImgTaken, cam);
@@ -110,6 +105,15 @@ public class GuiController extends Thread {
 			// Something went wrong
 			return -1;
 		}
+	}
+
+	// We want to set the images taken shown relative to the others
+	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
+		long takenTime = cam.getTimeStamp();
+		if (firstImgTaken > takenTime) {
+			firstImgTaken = takenTime;
+		}
+		return firstImgTaken;
 	}
 
 }

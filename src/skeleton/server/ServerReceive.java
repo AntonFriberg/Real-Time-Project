@@ -36,7 +36,7 @@ public class ServerReceive extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("HTTP server operating at port " + port + ".");
+		System.out.println("HTTP receiving server operating at port " + port + ".");
 
 		while (true) {
 			try {

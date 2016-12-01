@@ -31,7 +31,7 @@ public class ServerSend extends Thread{
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setSoTimeout(180000);  // Socket will timeout after 18 s of inactivity
-            System.out.println("HTTP server operating at port " + port + ".");
+            System.out.println("HTTP sending server operating at port " + port + ".");
 
             // initialize empty network objects
             Socket server = null;
