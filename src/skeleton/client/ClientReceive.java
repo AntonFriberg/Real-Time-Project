@@ -39,7 +39,7 @@ public class ClientReceive extends Thread {
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
-
+		System.out.println("Client receiving at " + port);
 		putLine(os, "SRT /image.jpg HTTP/1.0"); // Start the transmission of
 												// pictures
 		putLine(os, ""); // The request ends with an empty line

@@ -6,17 +6,17 @@ public class ClientMonitor {
 	private byte[] imgBuffer;
 	private byte[] timeStampBuffer;
 	private byte[] motionDetectBuffer;
-	
+
 	public static final int IDLE_MODE = 0;
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
-	public static final byte[] CRLF = {13,10};
-	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE +CRLF.length*3 + 1;
+	public static final byte[] CRLF = { 13, 10 };
+	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
+	public static final int SYNCHRONIZATION_THRESHOLD = 200; // 200 milliseconds
 	private int currentMode = 0;
 	private boolean modeChanged;
 	private boolean hasImage;
 	private boolean receiveShouldDisconnect;
-	
 
 	public ClientMonitor() {
 		hasImage = false;
@@ -44,21 +44,67 @@ public class ClientMonitor {
 	}
 
 	/**
-	 * Fetches an image if there is one to fetch.
+	 * Fetches an image if one arrives in the designated interval according to
+	 * waitFor.
 	 * 
-	 * @param image
+	 * @param camera
+	 *            the placeholder of image data
+	 * @param waitFor
+	 *            wait for this amount of time or return without an image
+	 * @return true if there was an image at this specific time
 	 * @throws InterruptedException
 	 */
-	public synchronized void getImage(byte[] image, byte[] timeStamp, byte[] motionDetect) throws InterruptedException {
-		while (!hasImage)
-			wait();
-	
-		System.arraycopy(imgBuffer, 0, image, 0, imgBuffer.length);
-		System.arraycopy(timeStampBuffer, 0, timeStamp, 0, timeStampBuffer.length);
-		motionDetect[0] = motionDetectBuffer[0];
+	public synchronized boolean getImage(Camera camera, long waitFor) throws InterruptedException {
+		while (!hasImage) {
+			wait(waitFor);
+		}
+		if (!hasImage) {
+			return false;
+		}
+		System.arraycopy(imgBuffer, 0, camera.getJpeg(), 0, imgBuffer.length);
+		camera.setTimeStamp(convertTime(timeStampBuffer));
+		if (motionDetectBuffer[0] == IDLE_MODE) {
+			camera.setMotionDetect(false);
+		} else {
+			camera.setMotionDetect(true);
+		}
 		System.out.println("Fetch");
 		hasImage = false;
 		notifyAll();
+		return true;
+	}
+
+	/**
+	 * Checks if an image is in the placeholder variables, in that case it
+	 * collects the image and stores in the sent in camera variable
+	 * 
+	 * @param camera
+	 *            the placeholder of image data
+	 * @return true if there was an image at this specific time
+	 */
+	public synchronized boolean tryGetImage(Camera camera) {
+		if (!hasImage) {
+			return false;
+		}
+		System.arraycopy(imgBuffer, 0, camera.getJpeg(), 0, imgBuffer.length);
+		camera.setTimeStamp(convertTime(timeStampBuffer));
+		if (motionDetectBuffer[0] == IDLE_MODE) {
+			camera.setMotionDetect(false);
+		} else {
+			camera.setMotionDetect(true);
+		}
+		System.out.println("Fetch");
+		hasImage = false;
+		notifyAll();
+		return true;
+	}
+
+	private long convertTime(byte[] timeArray) {
+		long time = 0;
+		for (int i = 0; i < timeArray.length; i++) {
+			time += ((long) timeArray[i] & 0xffL) << (8 * (7 - i));
+		}
+		return time;
 	}
 
 	/**
@@ -103,6 +149,5 @@ public class ClientMonitor {
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
-
 
 }

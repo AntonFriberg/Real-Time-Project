@@ -39,6 +39,7 @@ public class ClientSend extends Thread {
 		sock = new Socket(server, port);
 		is = sock.getInputStream();
 		os = sock.getOutputStream();
+		System.out.println("Client sending at " + port);
 
 		while (sock.isConnected()) {
 			int newCommand = monitor.getCommand();

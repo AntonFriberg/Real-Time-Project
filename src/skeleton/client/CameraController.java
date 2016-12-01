@@ -1,14 +1,25 @@
 package skeleton.client;
 
+import java.util.ArrayList;
+
 public class CameraController {
 	public static void main(String[] args){
 		if(args.length >= 3){
-			String server = args[0];
-			String receivePort = args[1];
-			String sendPort = args[2];
-			CameraInterface camera1 = new CameraInterface(server, receivePort, sendPort);
-//			CameraInterface camera2 = new CameraInterface(server,port);
+			String receivePort = args[2];
+			String sendPort = args[1];
+			
+			ArrayList<String> sendPorts = new ArrayList<String>();
+			ArrayList<String> recPorts = new ArrayList<String>();
+			
+			sendPorts.add(sendPort);
+			recPorts.add(receivePort);
+			
+			CameraInterface camera1 = new CameraInterface(recPorts, sendPorts);
 			camera1.start();
+			
+//			CameraInterface camera1 = new CameraInterface(server, receivePort, sendPort);
+//			CameraInterface camera2 = new CameraInterface(server,port);
+//			camera1.start();
 //			camera2.start();			
 		}
 	}

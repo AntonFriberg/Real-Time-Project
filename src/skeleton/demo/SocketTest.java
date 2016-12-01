@@ -11,8 +11,8 @@ import skeleton.server.ServerSend;
 public class SocketTest {
 
     public static void main(String[] args) {
-        int sendPort = 6032;
-        int receivePort = 6033;
+        int sendPort = 6077;
+        int receivePort = 6078;
         CameraMonitor cm = new CameraMonitor(sendPort);
         ServerSend server = new ServerSend(sendPort, "localhost", cm);
         CameraHandler cam = new CameraHandler(cm);
@@ -20,6 +20,6 @@ public class SocketTest {
         server.start();
         ServerReceive serverRec = new ServerReceive(receivePort,"localhost", cm);
         serverRec.start();
-        CameraController.main(new String[]{"localhost", Integer.toString(sendPort),Integer.toString(receivePort)});
+        CameraController.main(new String[]{"localhost", Integer.toString(receivePort),Integer.toString(sendPort)});
     }
 }

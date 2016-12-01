@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -26,50 +28,112 @@ import javax.swing.SwingUtilities;
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
 public class CameraInterface extends Thread {
-	private GUI gui;
-	private ClientMonitor monitor;
-	private byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
-	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
-	private byte[] motionDetectStatus = new byte[1];
-	private String server, receivePort, sendPort;
+	private int numberOfCameras = 0;
+	private boolean showAsynchronous = false;
+	private ArrayList<Camera> camWaitingForImgList;
+	private ArrayList<Camera> camReadyForDisplayList;
 
-	public CameraInterface(String server, String receivePort, String sendPort) {
-		monitor = new ClientMonitor(); // The monitor between
-		gui = new GUI(server, Integer.parseInt(receivePort), monitor);
-		this.server = server;
-		this.receivePort = receivePort;
-		this.sendPort = sendPort;
+	public CameraInterface(ArrayList<String> receivePorts, ArrayList<String> sendPorts) {
+		numberOfCameras = receivePorts.size() == sendPorts.size() ? receivePorts.size() : 0;
+		camWaitingForImgList = new ArrayList<Camera>();
+		camReadyForDisplayList = new ArrayList<Camera>();
+		// Adds all the cameras specified to a list
+
+		for (int i = 0; i < numberOfCameras; i++) {
+
+			int receivePort = Integer.parseInt(receivePorts.get(i));
+			int sendPort = Integer.parseInt(sendPorts.get(i));
+			camWaitingForImgList.add(new Camera(receivePort, sendPort));
+			// Starts the receiving and sending threads
+			new ClientReceive("localhost", receivePort, camWaitingForImgList.get(i).getMonitor()).start();
+			new ClientSend("localhost", sendPort, camWaitingForImgList.get(i).getMonitor()).start();
+		}
 	}
 
 	public void run() {
-		ClientReceive clientReceive = new ClientReceive(server, Integer.parseInt(receivePort), monitor);
-		clientReceive.start();
-		ClientSend clientSend = new ClientSend(server, Integer.parseInt(sendPort), monitor);
-		clientSend.start();
+		long setRelativeTime;
 		while (true) {
 			try {
-				monitor.getImage(jpeg, timeStamp, motionDetectStatus);
-				gui.refreshImage(jpeg, getDelay(timeStamp));
-				gui.setMode(motionDetectStatus[0]);
-				System.out.println(motionDetectStatus[0]);
-			} catch (InterruptedException e) {
+				getImage();
+				tryWaitForOther();
+				setRelativeTime = getRelativeTime();
+				if (setRelativeTime == -1) {
+					showAsynchronous = true;
+				}
+				for (Camera cam : camReadyForDisplayList) {
+					if (showAsynchronous)
+						cam.show(0);
+					else
+						cam.show(setRelativeTime);
+					camWaitingForImgList.add(cam);
+				}
+
+				camReadyForDisplayList = new ArrayList<Camera>();
+
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private long getDelay(byte[] timeArray) {
-		return System.currentTimeMillis() - convertTime(timeArray);
-	}
-
-	private long convertTime(byte[] timeArray) {
-		long time = 0;
-		for (int i = 0; i < timeArray.length; i++) {
-			time += ((long) timeArray[i] & 0xffL) << (8 * (7 - i));
+	// We want to set the images taken shown relative to the others
+	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
+		long takenTime = cam.getTimeStamp();
+		if (firstImgTaken > takenTime) {
+			firstImgTaken = takenTime;
 		}
-		return time;
+		return firstImgTaken;
 	}
 
+	private long getRelativeTime() {
+		long firstImgTaken = Long.MAX_VALUE;
+		for (Camera cam : camReadyForDisplayList) {
+			firstImgTaken = calculateRelativeTime(firstImgTaken, cam);
+		}
+		if (firstImgTaken < System.currentTimeMillis()) {
+			return firstImgTaken;
+		} else {
+			// Something went wrong
+			return -1;
+		}
+	}
+
+	private void getImage() throws InterruptedException {
+		if (camWaitingForImgList.size() == 0)
+			return;
+		boolean received = false;
+		int index = 0;
+		Camera tempCam;
+
+		while (!received) {
+			tempCam = camWaitingForImgList.get(index);
+			received = tempCam.getMonitor().tryGetImage(tempCam);
+			if (!received) {
+				if (index == camWaitingForImgList.size() - 1) {
+					index = 0;
+				}
+				Thread.sleep(50);
+			}
+		}
+		camReadyForDisplayList.add(camWaitingForImgList.remove(index));
+	}
+
+	private void tryWaitForOther() throws InterruptedException {
+		boolean received;
+		Camera tempCam;
+		int size = camWaitingForImgList.size();
+		int index = 0;
+		while (index < size) {
+			tempCam = camWaitingForImgList.get(index);
+			received = tempCam.getMonitor().getImage(tempCam, ClientMonitor.SYNCHRONIZATION_THRESHOLD);
+			if (received) {
+				camReadyForDisplayList.add(camWaitingForImgList.remove(index));
+				size--;
+			} else {
+				index++;
+			}
+		}
+	}
 }
 
 class GUI extends JFrame {
@@ -81,15 +145,12 @@ class GUI extends JFrame {
 	private JLabel lbDelay;
 	private ButtonGroup group;
 	private boolean firstCall = true;
-	private String server;
-	private int port;
 
 	private ClientMonitor monitor;
 
-	public GUI(String server, int port, ClientMonitor monitor) {
+	public GUI(int port, ClientMonitor monitor) {
 		super();
-		this.server = server;
-		this.port = port;
+		// this.server = server;
 		this.monitor = monitor;
 		imagePanel = new ImagePanel();
 
@@ -136,8 +197,8 @@ class GUI extends JFrame {
 		this.pack();
 	}
 
-	public void setMode(byte b) {
-		if (b == ClientMonitor.IDLE_MODE) {
+	public void setMode(boolean motion) {
+		if (!motion) {
 			btnIdle.setSelected(true);
 			btnMovie.setSelected(false);
 		} else {
@@ -152,7 +213,7 @@ class GUI extends JFrame {
 	 * 
 	 * @param image
 	 */
-	public void refreshImage(byte[] image, long delay) {
+	public void refreshImage(byte[] image, long waitFor, long delay) {
 		try {
 			// In order to prevent swing from trying to display a corrupt
 			// image
@@ -163,6 +224,12 @@ class GUI extends JFrame {
 			SwingUtilities.invokeLater(new Runnable() {
 				// Show image when it is convenient
 				public void run() {
+					try {
+						Thread.sleep(waitFor);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					imagePanel.refresh(tempImgArray);
 					pack();
 					setVisible(true);
