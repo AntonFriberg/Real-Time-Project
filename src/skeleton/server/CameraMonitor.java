@@ -39,7 +39,7 @@ public class CameraMonitor {
     public CameraMonitor(int port) {
         cam = new AxisM3006V();
         cam.init();
-        cam.setProxy("argus-1.student.lth.se", port);
+        cam.setProxy("argus-2.student.lth.se", port);
         imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
         timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
         System.out.println("Trying to connect to camera");
@@ -109,45 +109,41 @@ public class CameraMonitor {
         byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
         byte[] tsDataPacket = new byte[timeStampBox.length + CRLF.length];
         byte[] motionDetectPacket = new byte[motionDetectBox.length + CRLF.length];
-        System.out.println("Constructed byte arrays");
+        //System.out.println("Constructed byte arrays");
 
-        /**
-         * Put "IMG " + CRLF in image command packet
-         */
+
+        // Put "IMG " + CRLF in image command packet
         System.arraycopy(SEND_IMAGE_CMD, 0, imgCmdPacket, 0, SEND_IMAGE_CMD.length);
         System.arraycopy(CRLF, 0, imgCmdPacket, SEND_IMAGE_CMD.length, CRLF.length);
-        System.out.println("copied command");
-        /**
-         * Put image data and CRLF in image data packet
-         */
+        //System.out.println("copied command");
+
+        // Wait until notified by takeImage
         try {
             wait();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
         System.arraycopy(CRLF, 0, imgDataPacket, imageBox.length, CRLF.length);
-        System.out.println("copied image data");
-        /**
-         * Put timestamp data and CRLF in timestamp data packet
-         */
+        // System.out.println("copied image data");
+
+        // Put timestamp data and CRLF in timestamp data packet
         System.arraycopy(timeStampBox, 0, tsDataPacket, 0, timeStampBox.length);
         System.arraycopy(CRLF, 0, tsDataPacket, timeStampBox.length, CRLF.length);
-        System.out.println("copied image timestamp");
-        /**
-         * Put motionDetect data and CRLF in motionDetect data packet
-         */
+        // System.out.println("copied image timestamp");
+
+        //Put motionDetect data and CRLF in motionDetect data packet
         System.arraycopy(motionDetectBox, 0, motionDetectPacket, 0, motionDetectBox.length);
         System.arraycopy(CRLF, 0, motionDetectPacket, motionDetectBox.length, CRLF.length);
-        System.out.println("copied byte for motion detected");
-        /**
-         * Merge data arrays into packet and send
-         */
+        // System.out.println("copied byte for motion detected");
+
+        //Merge data arrays into packet and send
         os.write(imgCmdPacket, 0, imgCmdPacket.length);
         os.write(imgDataPacket, 0, imgDataPacket.length);
         os.write(tsDataPacket, 0, tsDataPacket.length);
         os.write(motionDetectPacket, 0, motionDetectPacket.length);
-        notifyAll();
+        //notifyAll();
     }
 
     /**
