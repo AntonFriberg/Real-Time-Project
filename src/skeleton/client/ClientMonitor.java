@@ -12,7 +12,7 @@ public class ClientMonitor {
 	public static final int DISCONNECT = 2;
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
-	public static final int SYNCHRONIZATION_THRESHOLD = 200; // 200 milliseconds
+	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
 	private int currentMode = 0;
 	private boolean modeChanged;
 	private boolean hasImage;
@@ -45,18 +45,16 @@ public class ClientMonitor {
 
 	/**
 	 * Fetches an image if one arrives in the designated interval according to
-	 * waitFor.
+	 * the synchronization threshold.
 	 * 
 	 * @param camera
 	 *            the placeholder of image data
-	 * @param waitFor
-	 *            wait for this amount of time or return without an image
 	 * @return true if there was an image at this specific time
 	 * @throws InterruptedException
 	 */
-	public synchronized boolean getImage(Camera camera, long waitFor) throws InterruptedException {
+	public synchronized boolean getImage(Camera camera) throws InterruptedException {
 		while (!hasImage) {
-			wait(waitFor);
+			wait(SYNCHRONIZATION_THRESHOLD);
 		}
 		if (!hasImage) {
 			return false;

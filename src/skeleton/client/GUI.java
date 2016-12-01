@@ -34,6 +34,7 @@ public class GUI extends JFrame {
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
 	private JLabel lbDelay;
+	private JLabel lbMode;
 	private ButtonGroup group;
 	private boolean firstCall = true;
 
@@ -47,9 +48,9 @@ public class GUI extends JFrame {
 
 		this.setTitle("Operating at port : " + port);
 		// The buttons are created
-		btnMovie = new JRadioButton("Movie", true);
+		btnMovie = new JRadioButton("Movie", false);
 		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
-		btnIdle = new JRadioButton("Idle", false);
+		btnIdle = new JRadioButton("Idle", true);
 		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
@@ -72,6 +73,7 @@ public class GUI extends JFrame {
 		buttonPane.add(btnDisconnect);
 		buttonPane.add(btnConnect);
 		lbDelay = new JLabel("Delay Time");
+		lbMode = new JLabel("Mode");
 
 		// The labels are added to a panel
 		JPanel labelPane = new JPanel();
@@ -79,6 +81,9 @@ public class GUI extends JFrame {
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		labelPane.add(new JLabel("Delay Time : "));
 		labelPane.add(lbDelay);
+		labelPane.add(Box.createHorizontalGlue());
+		labelPane.add(new JLabel("Motion : "));
+		labelPane.add(lbMode);
 
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
@@ -90,11 +95,9 @@ public class GUI extends JFrame {
 
 	public void setMode(boolean motion) {
 		if (!motion) {
-			btnIdle.setSelected(true);
-			btnMovie.setSelected(false);
+			lbMode.setText("OFF");
 		} else {
-			btnIdle.setSelected(false);
-			btnMovie.setSelected(true);
+			lbMode.setText("ON");
 		}
 	}
 
@@ -112,15 +115,10 @@ public class GUI extends JFrame {
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			lbDelay.setText(String.valueOf(delay));
+		
 			SwingUtilities.invokeLater(new Runnable() {
 				// Show image when it is convenient
 				public void run() {
-					try {
-						Thread.sleep(waitFor);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					imagePanel.refresh(tempImgArray);
 					pack();
 					setVisible(true);

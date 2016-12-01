@@ -11,15 +11,24 @@ import skeleton.server.ServerSend;
 public class SocketTest {
 
     public static void main(String[] args) {
-        int sendPort = 6077;
-        int receivePort = 6078;
-        CameraMonitor cm = new CameraMonitor(sendPort);
-        ServerSend server = new ServerSend(sendPort, cm);
-        CameraHandler cam = new CameraHandler(cm);
-        cam.start();
-        server.start();
-        ServerReceive serverRec = new ServerReceive(receivePort, cm);
-        serverRec.start();
-        CameraController.main(new String[]{"localhost", Integer.toString(receivePort),Integer.toString(sendPort)});
+        int sendPorts[] = {6077, 6080};
+        int receivePorts[] = {6078, 6081};
+        CameraMonitor cm1 = new CameraMonitor(sendPorts[0]);
+        ServerSend serverSend1 = new ServerSend(sendPorts[0], cm1);
+        serverSend1.start();
+        ServerReceive serverRec1 = new ServerReceive(receivePorts[0], cm1);
+        serverRec1.start();
+        CameraHandler cam1 = new CameraHandler(cm1);
+        cam1.start();
+        
+        CameraMonitor cm2 = new CameraMonitor(sendPorts[1]);
+        ServerSend serverSend2 = new ServerSend(sendPorts[1], cm2);
+        serverSend2.start();
+        ServerReceive serverRec2 = new ServerReceive(receivePorts[1], cm2);
+        serverRec2.start();
+        CameraHandler cam2 = new CameraHandler(cm2);
+        cam2.start();
+        
+        CameraController.main(new String[]{"localhost", "6077", "6080", "6078", "6081"});
     }
 }

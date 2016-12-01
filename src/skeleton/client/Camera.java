@@ -63,7 +63,15 @@ public class Camera {
 	}
 	
 	public void show(long relativeTime){
-		gui.refreshImage(jpeg, (relativeTime - timeStamp), getDelay());
+		if(relativeTime == 0){
+			gui.refreshImage(jpeg, 0, getDelay());
+			System.out.println("Showing Image with :  0 seconds delay");
+		}
+		
+		else{
+			gui.refreshImage(jpeg, (timeStamp - relativeTime), getDelay());
+			System.out.println("Showing Image with :  " +  (timeStamp - relativeTime)+ " seconds delay");
+		}
 		gui.setMode(motionDetect);
 		System.out.println(motionDetect);
 	} 

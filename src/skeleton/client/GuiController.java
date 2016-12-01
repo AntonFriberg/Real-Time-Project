@@ -2,9 +2,10 @@ package skeleton.client;
 
 import java.util.ArrayList;
 
-public class GuiController extends Thread{
+public class GuiController extends Thread {
 	private int numberOfCameras = 0;
 	private boolean showAsynchronous = false;
+
 	private ArrayList<Camera> camWaitingForImgList;
 	private ArrayList<Camera> camReadyForDisplayList;
 
@@ -31,7 +32,7 @@ public class GuiController extends Thread{
 			try {
 				getImage();
 				tryWaitForOther();
-				setRelativeTime = getRelativeTime();
+				setRelativeTime = getRelativeTime(camReadyForDisplayList.get(0).getTimeStamp());
 				if (setRelativeTime == -1) {
 					showAsynchronous = true;
 				}
@@ -51,28 +52,6 @@ public class GuiController extends Thread{
 		}
 	}
 
-	// We want to set the images taken shown relative to the others
-	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
-		long takenTime = cam.getTimeStamp();
-		if (firstImgTaken > takenTime) {
-			firstImgTaken = takenTime;
-		}
-		return firstImgTaken;
-	}
-
-	private long getRelativeTime() {
-		long firstImgTaken = Long.MAX_VALUE;
-		for (Camera cam : camReadyForDisplayList) {
-			firstImgTaken = calculateRelativeTime(firstImgTaken, cam);
-		}
-		if (firstImgTaken < System.currentTimeMillis()) {
-			return firstImgTaken;
-		} else {
-			// Something went wrong
-			return -1;
-		}
-	}
-
 	private void getImage() throws InterruptedException {
 		if (camWaitingForImgList.size() == 0)
 			return;
@@ -83,8 +62,10 @@ public class GuiController extends Thread{
 		while (!received) {
 			tempCam = camWaitingForImgList.get(index);
 			received = tempCam.getMonitor().tryGetImage(tempCam);
+			
 			if (!received) {
-				if (index == camWaitingForImgList.size() - 1) {
+				index++;
+				if (index == camWaitingForImgList.size()) {
 					index = 0;
 				}
 				Thread.sleep(50);
@@ -100,7 +81,7 @@ public class GuiController extends Thread{
 		int index = 0;
 		while (index < size) {
 			tempCam = camWaitingForImgList.get(index);
-			received = tempCam.getMonitor().getImage(tempCam, ClientMonitor.SYNCHRONIZATION_THRESHOLD);
+			received = tempCam.getMonitor().getImage(tempCam);
 			if (received) {
 				camReadyForDisplayList.add(camWaitingForImgList.remove(index));
 				size--;
@@ -109,5 +90,26 @@ public class GuiController extends Thread{
 			}
 		}
 	}
-}
 
+	// We want to set the images taken shown relative to the others
+	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
+		long takenTime = cam.getTimeStamp();
+		if (firstImgTaken > takenTime) {
+			firstImgTaken = takenTime;
+		}
+		return firstImgTaken;
+	}
+
+	private long getRelativeTime(long firstImgTaken) {
+		for (Camera cam : camReadyForDisplayList) {
+			firstImgTaken = calculateRelativeTime(firstImgTaken, cam);
+		}
+		if (firstImgTaken < System.currentTimeMillis()) {
+			return firstImgTaken;
+		} else {
+			// Something went wrong
+			return -1;
+		}
+	}
+
+}

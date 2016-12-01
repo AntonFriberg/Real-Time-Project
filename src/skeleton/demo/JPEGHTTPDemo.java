@@ -5,7 +5,7 @@ import skeleton.server.JPEGHTTPServer;
 import skeleton.server.ServerSend;
 import skeleton.client.CameraController;
 //import skeleton.client.JPEGHTTPClient;
-import skeleton.client.CameraInterface;
+//import skeleton.client.CameraInterface;
 
 public class JPEGHTTPDemo {
 
