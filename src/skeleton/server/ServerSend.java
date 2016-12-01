@@ -8,37 +8,36 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * Created by Anton Friberg on 11/15/16.
+ * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
  */
 public class ServerSend extends Thread{
     /**
-     * Packages the image data, timestamp and current mode into an ImageEvent and sends it
-     * over the network via byte array over standardized protocol. There is one send
-     * thread for each camera.
+     * Sends the image command, data, timestamp and current mode
+     * over the network via byte arrays. There is one send
+     * thread for each camera connected to the client.
      */
 
+    private static final String START_CONNECTION = "SRT ";
     private ServerSocket serverSocket;
-    private Socket server;
-    private InputStream is;
-    private OutputStream os;
-    private static final byte[] CRLF = { 13, 10};
     private int port;
-    private String client;
     private CameraMonitor cm;
 
-    public ServerSend(int port, String client, CameraMonitor cm) {
+    public ServerSend(int port, CameraMonitor cm) {
         this.port = port;
-        this.client = client;
         this.cm = cm;
-        // Prepare connection
-        serverSocket = null;
     }
 
     public void run() {
         try {
             serverSocket = new ServerSocket(port);
-            serverSocket.setSoTimeout(180000);
+            serverSocket.setSoTimeout(180000);  // Socket will timeout after 18 s of inactivity
             System.out.println("HTTP server operating at port " + port + ".");
+
+            // initialize empty network objects
+            Socket server = null;
+            InputStream is = null;
+            OutputStream os = null;
+
             // Main loop
             while (true) {
                 try {
@@ -55,8 +54,8 @@ public class ServerSend extends Thread{
                     // be read from using read(...) and the OutputStream can be
                     // written to using write(...). However, we use our own
                     // getLine/putLine methods below.
-                    InputStream is = server.getInputStream();
-                    OutputStream os = server.getOutputStream();
+                    is = server.getInputStream();
+                    os = server.getOutputStream();
 
                     // Read the request
                     String request = getLine(is);
@@ -73,7 +72,9 @@ public class ServerSend extends Thread{
                     System.out.println("HTTP request '" + request
                             + "' received.");
 
-                    if (request.substring(0, 4).equals("SRT ")) {
+                    // Start sending images after start command is received.
+                    // Continue sending while the connection is active
+                    if (request.substring(0, 4).equals(START_CONNECTION)) {
                         // Until the client tells us to disconnect
                         while (cm.connected()) {
                             System.out.println("sending image");
@@ -81,10 +82,14 @@ public class ServerSend extends Thread{
                             os.flush();
                         }
                     }
+
                     os.flush();                      // Flush any remaining content
+
                 } catch (IOException e) {
                     System.out.println("Caught exception " + e);
+
                 } finally {
+                    // Clean up remaining connections before listening one
                     try {
                         if (is != null) is.close();
                         if (os != null) os.close();
@@ -99,13 +104,13 @@ public class ServerSend extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            // Clean up connection at shutdown
             try {
                 if (serverSocket != null) serverSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**
@@ -127,16 +132,6 @@ public class ServerSend extends Thread{
                 result += (char) ch;
             }
         }
-
         return result;
-    }
-
-    /**
-     * Send a line on OutputStream 's', terminated by CRLF. The CRLF should not
-     * be included in the string str.
-     */
-    private static void putLine(OutputStream s, String str) throws IOException {
-        s.write(str.getBytes());
-        s.write(CRLF);
     }
 }
