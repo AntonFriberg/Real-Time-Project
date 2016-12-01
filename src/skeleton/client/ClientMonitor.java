@@ -143,6 +143,8 @@ public class ClientMonitor {
 			wait();
 		if (newCommand == ClientMonitor.DISCONNECT) {
 			setDisconnect();
+		} else if(newCommand == ClientMonitor.CONNECT) {
+			setConnect();
 		}
 		commandMap.put(callerID, newCommand);
 		notifyAll();
@@ -152,7 +154,10 @@ public class ClientMonitor {
 	private void setDisconnect() {
 		receiveShouldDisconnect = true;
 	}
-
+	
+	private void setConnect() {
+		receiveShouldDisconnect = false;
+	}
 	/**
 	 * Notifies the recieving thread that it should cancel receiving images
 	 * 

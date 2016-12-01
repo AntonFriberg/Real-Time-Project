@@ -88,13 +88,13 @@ public class ServerReceive extends Thread {
                         // rate to idle.
                     	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
-                    }else if (request.substring(0, 4).equals(DISCONNECT)){
+                    }else if (request.substring(0, 4).equals(DISCONNECT)){ // servern ska aldrig köra disconect!!!!
                         // Got a DSC request (Disconnect)
                         // respond by propagating the closure
                         // of sockets via the monitor
-                        System.out.println("DISCONNECT SOCKETS");
-                        System.out.println("Received DSC");
-                        cm.disconnect();
+                        //System.out.println("DISCONNECT SOCKETS");
+                        //System.out.println("Received DSC");
+                        //cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
 //                        putLine(os, "HTTP/1.0 501 Method not implemented");

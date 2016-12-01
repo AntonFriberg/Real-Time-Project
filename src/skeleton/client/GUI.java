@@ -51,7 +51,7 @@ public class GUI extends JPanel {
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
-		btnConnect.addActionListener(new ButtonConnectHandler(this));
+		btnConnect.addActionListener(new ButtonConnectHandler(this, ClientMonitor.CONNECT));
 
 		// The buttons are added to a panel
 		JPanel buttonPane = new JPanel();
@@ -178,25 +178,15 @@ class ImagePanel extends JPanel {
 
 class ButtonConnectHandler implements ActionListener {
 	GUI gui;
-
-	public ButtonConnectHandler(GUI gui) {
+	private int command;
+	public ButtonConnectHandler(GUI gui, int command) {
+		this.command = command;
 		this.gui = gui;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Object[] possibilities = { "6077", "6078", "6079" };
-		String s = (String) JOptionPane.showInputDialog(gui, "Choose Port:\n", "Connect to camera",
-				JOptionPane.PLAIN_MESSAGE, null, possibilities, "6077");
-
-		// If a string was returned, say so.
-		if ((s != null) && (s.length() > 0)) {
-			// setLabel("Green eggs and... " + s + "!");
-			return;
-		}
-
-		// If you're here, the return value was null/empty.
-		// setLabel("Come on, finish the sentence!");
+		gui.sendCommand(command);
 	}
 }
 

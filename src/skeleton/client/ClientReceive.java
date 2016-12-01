@@ -38,46 +38,57 @@ public class ClientReceive extends Thread {
 	}
 
 	private void getImage() throws IOException, InterruptedException {
-		sock = new Socket(server, port);
-		is = sock.getInputStream();
-		os = sock.getOutputStream();
-		System.out.println("Client receiving at " + port);
-		putLine(os, "SRT /image.jpg HTTP/1.0"); // Start the transmission of
-												// pictures
-		putLine(os, ""); // The request ends with an empty line
-
-		while (!monitor.shouldDisconnect()) {
-			// Read the first line of the response (status line)
-			String responseLine;
-			responseLine = getLine(is);
-			System.out.println("HTTP server says '" + responseLine + "'.");
-
-			// Read the inputstream
-			byte[] receivedData = new byte[ClientMonitor.REC_DATA];
-			int bytesRead = readData(receivedData.length, receivedData);
-
-			if (bytesRead == ClientMonitor.REC_DATA) {
-				// Load the JPEG
-				System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
-
-				// Read the Time
-				System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + CRLF.length, timeStamp, 0, AxisM3006V.TIME_ARRAY_SIZE);
-
-				// Read the Motion
-				System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length*2, motionDetect,
-						0, 1);
-
-				// Puts the image in the monitor whith time Data and motion
-				// detect
-				monitor.putImage(jpeg, timeStamp, motionDetect[0], cameraID);
-			} else {
-				// Something went wrong
+		while (true) {
+			if (!monitor.shouldDisconnect()) {
+				sock = new Socket(server, port);
+				is = sock.getInputStream();
+				os = sock.getOutputStream();
+				System.out.println("Client receiving at " + port);
+				putLine(os, "SRT /image.jpg HTTP/1.0"); // Start the transmission of
+														// pictures
+				putLine(os, ""); // The request ends with an empty line
+		
+				while (!monitor.shouldDisconnect()) {
+					// Read the first line of the response (status line)
+					String responseLine;
+					responseLine = getLine(is);
+					System.out.println("HTTP server says '" + responseLine + "'.");
+		
+					// Read the inputstream
+					byte[] receivedData = new byte[ClientMonitor.REC_DATA];
+					int bytesRead = readData(receivedData.length, receivedData);
+		
+					if (bytesRead == ClientMonitor.REC_DATA) {
+						// Load the JPEG
+						System.arraycopy(receivedData, 0, jpeg, 0, AxisM3006V.IMAGE_BUFFER_SIZE);
+		
+						// Read the Time
+						System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + CRLF.length, timeStamp, 0, AxisM3006V.TIME_ARRAY_SIZE);
+		
+						// Read the Motion
+						System.arraycopy(receivedData, AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length*2, motionDetect,
+								0, 1);
+		
+						// Puts the image in the monitor with time Data and motion
+						// detect
+						monitor.putImage(jpeg, timeStamp, motionDetect[0], cameraID);
+					} else {
+						// Something went wrong
+					}
+					os.flush();
+				}
+				try {
+					is.close();
+					os.close();
+					sock.close();
+				}catch (IOException e) {
+                    //System.out.println("Caught exception " + e);
+                }finally {
+				
+				}
 			}
-			os.flush();
-
+			sleep(500);
 		}
-		//sock.close();
-
 	}
 
 	private int readData(int bufferSize, byte[] container) throws IOException {
