@@ -1,119 +1,54 @@
 package skeleton.client;
 
 import java.util.ArrayList;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
+import javax.swing.JFrame;
 
 public class GuiController extends Thread {
 	private int numberOfCameras = 0;
 	private boolean showAsynchronous = false;
+	private ClientMonitor monitor;
+	private Queue<Camera> cameraQueue;
+	private GUI gui1;
+	private GUI gui2;
 
-	private ArrayList<Camera> camWaitingForImgList;
-	private ArrayList<Camera> camReadyForDisplayList;
+	public GuiController() {
+		
+		monitor = new ClientMonitor(2);
+		this.gui1 = new GUI(6077, monitor, 0);
+		this.gui2 = new GUI(6080, monitor, 1);
+		cameraQueue = new PriorityQueue<Camera>();
+		
+		new ClientReceive("localhost", 6077, monitor, 0).start();
+		new ClientSend("localhost", 6078, monitor, 0).start();
 
-	public GuiController(ArrayList<String> receivePorts, ArrayList<String> sendPorts) {
-		numberOfCameras = receivePorts.size() == sendPorts.size() ? receivePorts.size() : 0;
-		camWaitingForImgList = new ArrayList<Camera>();
-		camReadyForDisplayList = new ArrayList<Camera>();
-		// Adds all the cameras specified to a list
-
-		for (int i = 0; i < numberOfCameras; i++) {
-
-			int receivePort = Integer.parseInt(receivePorts.get(i));
-			int sendPort = Integer.parseInt(sendPorts.get(i));
-			camWaitingForImgList.add(new Camera(receivePort, sendPort));
-			// Starts the receiving and sending threads
-			new ClientReceive("localhost", receivePort, camWaitingForImgList.get(i).getMonitor()).start();
-			new ClientSend("localhost", sendPort, camWaitingForImgList.get(i).getMonitor()).start();
-		}
+		new ClientReceive("localhost", 6080, monitor, 1).start();
+		new ClientSend("localhost", 6081, monitor, 1).start();
 	}
 
 	public void run() {
-		long setRelativeTime;
+		long relativeTime;
+		GUI tempGUI;
 		while (true) {
 			try {
-				getImage();
-				tryWaitForOther();
-				setRelativeTime = getRelativeTime(camReadyForDisplayList.get(0).getTimeStamp());
-				if (setRelativeTime == -1) {
-					showAsynchronous = true;
-				}
-				for (Camera cam : camReadyForDisplayList) {
-					if (showAsynchronous)
-						cam.show(0);
-					else
-						cam.show(setRelativeTime);
-					camWaitingForImgList.add(cam);
-				}
+				relativeTime = monitor.getImage(cameraQueue);
+				for (Camera cam : cameraQueue) {
+					if (cam.getID() == 0) {
+						tempGUI = gui1;
 
-				camReadyForDisplayList = new ArrayList<Camera>();
+					} else {
+						tempGUI = gui2;
+					}
+					tempGUI.refreshImage(cam.getJpeg(), cam.getTimeStamp() - relativeTime,
+							System.currentTimeMillis() - cam.getTimeStamp());
+				}
+				cameraQueue = new PriorityQueue<Camera>();
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
-
-	private void getImage() throws InterruptedException {
-		if (camWaitingForImgList.size() == 0)
-			return;
-		boolean received = false;
-		int index = 0;
-		Camera tempCam;
-
-		while (!received) {
-			tempCam = camWaitingForImgList.get(index);
-			received = tempCam.getMonitor().tryGetImage(tempCam);
-			
-			if (!received) {
-				index++;
-				if (index == camWaitingForImgList.size()) {
-					index = 0;
-				}
-				Thread.sleep(50);
-			}
-		}
-		System.out.println("GOT IMAGE");
-		camReadyForDisplayList.add(camWaitingForImgList.remove(index));
-	}
-
-	private void tryWaitForOther() throws InterruptedException {
-		boolean received;
-		Camera tempCam;
-		int size = camWaitingForImgList.size();
-		int index = 0;
-		while (index < size) {
-			tempCam = camWaitingForImgList.get(index);
-			received = tempCam.getMonitor().getImage(tempCam);
-			if (received) {
-				camReadyForDisplayList.add(camWaitingForImgList.remove(index));
-				System.out.println("GOT ANOTHER IMAGE");
-				size--;
-			} else {
-				index++;
-			}
-		}
-		
-		System.out.println("Ready for display");
-	}
-	
-	private long getRelativeTime(long firstImgTaken) {
-		for (Camera cam : camReadyForDisplayList) {
-			firstImgTaken = calculateRelativeTime(firstImgTaken, cam);
-		}
-		if (firstImgTaken < System.currentTimeMillis()) {
-			return firstImgTaken;
-		} else {
-			// Something went wrong
-			return -1;
-		}
-	}
-
-	// We want to set the images taken shown relative to the others
-	private long calculateRelativeTime(long firstImgTaken, Camera cam) {
-		long takenTime = cam.getTimeStamp();
-		if (firstImgTaken > takenTime) {
-			firstImgTaken = takenTime;
-		}
-		return firstImgTaken;
-	}
-
 }

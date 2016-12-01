@@ -37,13 +37,13 @@ public class GUI extends JFrame {
 	private JLabel lbMode;
 	private ButtonGroup group;
 	private boolean firstCall = true;
-
 	private ClientMonitor monitor;
-
-	public GUI(int port, ClientMonitor monitor) {
+	private int cameraID;
+	public GUI(int port, ClientMonitor monitor,int cameraID) {
 		super();
-		// this.server = server;
+		this.cameraID = cameraID;
 		this.monitor = monitor;
+		// this.server = server;
 		imagePanel = new ImagePanel();
 
 		this.setTitle("Operating at port : " + port);
@@ -144,7 +144,12 @@ public class GUI extends JFrame {
 	}
 
 	public void sendCommand(int command) {
-		monitor.setCommand(command);
+		try {
+			monitor.setCommand(command, cameraID);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
 

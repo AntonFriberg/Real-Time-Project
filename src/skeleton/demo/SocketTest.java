@@ -11,7 +11,8 @@ import skeleton.server.ServerSend;
 public class SocketTest {
 
     public static void main(String[] args) {
-        int sendPorts[] = {6077, 6080};
+     
+    	int sendPorts[] = {6077, 6080};
         int receivePorts[] = {6078, 6081};
         CameraMonitor cm1 = new CameraMonitor(sendPorts[0]);
         ServerSend serverSend1 = new ServerSend(sendPorts[0], cm1);

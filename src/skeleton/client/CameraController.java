@@ -14,7 +14,7 @@ public class CameraController {
 			recPorts.add(args[1]);
 			recPorts.add(args[2]);
 
-			GuiController camera1 = new GuiController(recPorts, sendPorts);
+			GuiController camera1 = new GuiController();
 			camera1.start();
 
 			// CameraInterface camera1 = new CameraInterface(server,
