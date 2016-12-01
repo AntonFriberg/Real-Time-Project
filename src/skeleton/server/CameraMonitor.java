@@ -99,11 +99,6 @@ public class CameraMonitor {
     	motionDetectBox = new byte[1];
         motionDetectBox[0] = mode;
         System.out.println((int) motionDetectBox[0]);
-        try {
-            wait(100000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         System.out.println();
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
         byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
