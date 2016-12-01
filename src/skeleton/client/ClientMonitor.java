@@ -53,7 +53,7 @@ public class ClientMonitor {
 	 * @throws InterruptedException
 	 */
 	public synchronized boolean getImage(Camera camera) throws InterruptedException {
-		while (!hasImage) {
+		if (!hasImage) {
 			wait(SYNCHRONIZATION_THRESHOLD);
 		}
 		if (!hasImage) {
