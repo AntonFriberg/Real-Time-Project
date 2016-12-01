@@ -15,7 +15,7 @@ public class JPEGHTTPDemo {
 //		s1.start();
 //		s2.start();
 		CameraMonitor monitor = new CameraMonitor(6077);
-		new ServerSend(6077, "localhost",monitor).start();
+		new ServerSend(6077,monitor).start();
 //		Client c = new Client();
 //		c.start();
 //		CameraInterface gui = new CameraInterface("localhost","6077");

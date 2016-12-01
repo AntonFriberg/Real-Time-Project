@@ -14,11 +14,11 @@ public class SocketTest {
         int sendPort = 6077;
         int receivePort = 6078;
         CameraMonitor cm = new CameraMonitor(sendPort);
-        ServerSend server = new ServerSend(sendPort, "localhost", cm);
+        ServerSend server = new ServerSend(sendPort, cm);
         CameraHandler cam = new CameraHandler(cm);
         cam.start();
         server.start();
-        ServerReceive serverRec = new ServerReceive(receivePort,"localhost", cm);
+        ServerReceive serverRec = new ServerReceive(receivePort, cm);
         serverRec.start();
         CameraController.main(new String[]{"localhost", Integer.toString(receivePort),Integer.toString(sendPort)});
     }

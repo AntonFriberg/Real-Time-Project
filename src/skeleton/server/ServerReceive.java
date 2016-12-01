@@ -11,22 +11,20 @@ import java.net.Socket;
  */
 public class ServerReceive extends Thread {
 	/**
-	 * Receives changes to the current camera mode. Each camera has one receive
-	 * thread and communicates with the client via byte array and expects CMM
-	 * for motion and CMI for idle.
+	 * Receives clients command to change camera mode and disconnect.
+     * Each camera has one receive thread and communicates with the
+     * client via byte array and expects CMM for motion, CMI for idle
+     * and DSC for disconnect.
 	 */
-
-	private Socket sock;
-	private InputStream is;
-	private OutputStream os;
-	private static final byte[] CRLF = { 13, 10 };
-	private int receivePort;
-	private String client;
+    private static final String MOTION_MODE = "CMM ";
+    private static final String IDLE_MODE = "CMI ";
+    private static final String DISCONNECT = "DSC ";
+	private static final byte[] CRLF = { 13, 10 }; //
+	private int port;
 	private CameraMonitor cm;
 
-	public ServerReceive(int port, String client, CameraMonitor cm) {
-		this.receivePort = port;
-		this.client = client;
+	public ServerReceive(int port, CameraMonitor cm) {
+		this.port = port;
 		this.cm = cm;
 	}
 
@@ -34,11 +32,11 @@ public class ServerReceive extends Thread {
 		// Prepare connection
 		ServerSocket serverSocket = null;
 		try {
-			serverSocket = new ServerSocket(receivePort);
+			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("HTTP server operating at port " + receivePort + ".");
+		System.out.println("HTTP server operating at port " + port + ".");
 
 		while (true) {
 			try {
@@ -56,49 +54,48 @@ public class ServerReceive extends Thread {
 				InputStream is = receiveSocket.getInputStream();
 				OutputStream os = receiveSocket.getOutputStream();
 
-				// Read the request
-				String request = getLine(is);
-
-				// The request is followed by some additional header lines,
-				// followed by a blank line. Those header lines are ignored.
-				String header;
-				boolean cont;
-				do {
-					header = getLine(is);
-					cont = !(header.equals(""));
-				} while (cont);
-
-				System.out.println("HTTP request '" + request + "' received.");
-
                 /**
                  * Main loop that listens for commands to change mode or if camera has detected motion
+                 * also listens for clients request to disconnect the connection
                  */
                 while(cm.connected()) {
+				    // Read the request
+				    String request = getLine(is);
+
+				    // The request is followed by some additional header lines,
+				    // followed by a blank line. Those header lines are ignored.
+				    String header;
+				    boolean cont;
+				    do {
+				    	header = getLine(is);
+				    	cont = !(header.equals(""));
+				    } while (cont);
+
+				    System.out.println("HTTP request '" + request + "' received.");
+
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
-                    if (cm.motionDetected() || request.substring(0, 4).equals("CMM ")) {
-                        /**
-                         * Got a CMM request (Change Mode Motion)
-                         * or our camera detected motion, respond
-                         * by changing the mode and frame rate to
-                         * motion.
-                         */
+                    boolean motion = cm.motionDetected();
+                    if (motion || request.substring(0, 4).equals(MOTION_MODE)) {
+                        // Got a CMM request (Change Mode Motion)
+                        // or our camera detected motion, respond
+                        // by changing the mode and frame rate to
+                        // motion.
+                        System.out.println(request);
+                        System.out.println("MOTION ACTIVATE" + motion);
                         cm.activateMotion(true);
-                    } else if (request.substring(0, 4).equals("CMI ")) {
-                        /**
-                         * Got a CMI request (Change Mode Idle),
-                         * respond by changing mode and frame
-                         * rate to idle.
-                         */
-                    	System.out.println("Received CMI");
+                    } else if (request.substring(0, 4).equals(IDLE_MODE)) {
+                        // Got a CMI request (Change Mode Idle),
+                        // respond by changing mode and frame
+                        // rate to idle.
+                    	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
-                    }else if (request.substring(0, 4).equals("DSC ")){
-                        /**
-                         * Got a DSC request (Disconnect)
-                         * respond by propagating the closure
-                         * of sockets via the monitor
-                         */
-                    	System.out.println("Received DSC");
+                    }else if (request.substring(0, 4).equals(DISCONNECT)){
+                        // Got a DSC request (Disconnect)
+                        // respond by propagating the closure
+                        // of sockets via the monitor
+                        System.out.println("DISCONNECT SOCKETS");
+                        System.out.println("Received DSC");
                         cm.disconnect();
                     } else {
                         // Got some other request. Respond with an error message.
@@ -109,16 +106,7 @@ public class ServerReceive extends Thread {
 //
 //                        System.out.println("Unsupported HTTP request!");
                     }
-                    
-                    try {
-                        sleep(100); // Should perhaps change to wait inside monitor (limits cpu time)
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                 }
-
-
-
 				os.flush(); // Flush any remaining content
 				receiveSocket.close(); // Disconnect from the client
 			} catch (IOException e) {
@@ -134,7 +122,6 @@ public class ServerReceive extends Thread {
 	private static String getLine(InputStream s) throws IOException {
 		boolean done = false;
 		String result = "";
-
 		while (!done) {
 			int ch = s.read(); // Read
 			if (ch <= 0 || ch == 10) {
@@ -145,16 +132,6 @@ public class ServerReceive extends Thread {
 				result += (char) ch;
 			}
 		}
-
 		return result;
-	}
-
-	/**
-	 * Send a line on OutputStream 's', terminated by CRLF. The CRLF should not
-	 * be included in the string str.
-	 */
-	private static void putLine(OutputStream s, String str) throws IOException {
-		s.write(str.getBytes());
-		s.write(CRLF);
 	}
 }
