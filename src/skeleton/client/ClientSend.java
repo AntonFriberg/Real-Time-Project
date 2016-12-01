@@ -19,11 +19,12 @@ public class ClientSend extends Thread {
 	public static final String MOTION_OFF = "CMI ";
 	public static final String MOTION_ON = "CMM ";
 	public static final String DISCONNECT = "DSC ";
-
-	public ClientSend(String server, int port, ClientMonitor monitor) {
+	private	int cameraID;
+	public ClientSend(String server, int port, ClientMonitor monitor, int cameraID) {
 		this.server = server;
 		this.port = port;
 		this.monitor = monitor;
+		this.cameraID = cameraID;
 	}
 
 	public void run() {
@@ -42,7 +43,7 @@ public class ClientSend extends Thread {
 		System.out.println("Client sending at " + port);
 
 		while (sock.isConnected()) {
-			int newCommand = monitor.getCommand();
+			int newCommand = monitor.getCommand(cameraID);
 			System.out.println("Sending + : ");
 			if (newCommand == ClientMonitor.IDLE_MODE) {
 				System.out.println(MOTION_OFF);

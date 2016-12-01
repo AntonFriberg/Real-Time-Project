@@ -1,12 +1,19 @@
 package skeleton.client;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
 public class ClientMonitor {
-	private byte[] imgBuffer;
-	private byte[] timeStampBuffer;
-	private byte[] motionDetectBuffer;
-
+	// private byte[] imgBuffer;
+	// private byte[] timeStampBuffer;
+	// private byte[] motionDetectBuffer;
+	//
+	private Queue<Camera> cameraQueue;
+	private HashMap<Integer, Integer> commandMap;
 	public static final int IDLE_MODE = 0;
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
@@ -15,17 +22,21 @@ public class ClientMonitor {
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
-	private int currentMode = 0;
-	private boolean modeChanged;
-	private boolean hasImage;
+
+	private long refTime = Long.MAX_VALUE;
+	private int numberOfCameras;
 	private boolean receiveShouldDisconnect;
 
-	public ClientMonitor() {
-		hasImage = false;
-		modeChanged = false;
-		imgBuffer = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
-		timeStampBuffer = new byte[AxisM3006V.TIME_ARRAY_SIZE];
-		motionDetectBuffer = new byte[1];
+	public ClientMonitor(int numberOfCameras) {
+		this.numberOfCameras = numberOfCameras;
+		cameraQueue = new PriorityQueue<Camera>();
+		commandMap = new HashMap<Integer, Integer>();
+	}
+
+	private void setRefTime(long timeStamp) {
+		if (timeStamp < refTime) {
+			refTime = timeStamp;
+		}
 	}
 
 	/**
@@ -36,67 +47,43 @@ public class ClientMonitor {
 	 *            an array of bytes containing the image
 	 * @throws InterruptedException
 	 */
-	public synchronized void putImage(byte[] image, byte[] timeStamp, byte motionDetect) throws InterruptedException {
-		System.arraycopy(image, 0, imgBuffer, 0, image.length);
-		System.arraycopy(timeStamp, 0, timeStampBuffer, 0, timeStamp.length);
-		motionDetectBuffer[0] = motionDetect;
+	public synchronized void putImage(byte[] image, byte[] timeStamp, byte motionDetect, int cameraID)
+			throws InterruptedException {
+		cameraQueue.offer(new Camera(cameraID));
+		System.arraycopy(image, 0, cameraQueue.peek().getJpeg(), 0, image.length);
+		cameraQueue.peek().setTimeStamp(convertTime(timeStamp));
+		if (motionDetect == IDLE_MODE) {
+			cameraQueue.peek().setMotionDetect(false);
+		} else {
+			cameraQueue.peek().setMotionDetect(true);
+		}
+		setRefTime(convertTime(timeStamp));
 		System.out.println("Put");
-		hasImage = true;
 		notifyAll();
 	}
 
 	/**
-	 * Fetches an image if one arrives in the designated interval according to
-	 * the synchronization threshold.
 	 * 
-	 * @param camera
-	 *            the placeholder of image data
-	 * @return true if there was an image at this specific time
+	 * @param fetchQueue
 	 * @throws InterruptedException
 	 */
-	public synchronized boolean getImage(Camera camera) throws InterruptedException {
-		if (!hasImage) {
-			wait(SYNCHRONIZATION_THRESHOLD);
+	public synchronized long getImage(Queue<Camera> fetchQueue) throws InterruptedException {
+		while (cameraQueue.size() == 0) {
+			wait();
 		}
-		if (!hasImage) {
-			return false;
+		long receivedTime = System.currentTimeMillis();
+		while ((System.currentTimeMillis() - receivedTime < SYNCHRONIZATION_THRESHOLD)
+				&& cameraQueue.size() < numberOfCameras) {
+			wait(100);
 		}
-		System.arraycopy(imgBuffer, 0, camera.getJpeg(), 0, imgBuffer.length);
-		camera.setTimeStamp(convertTime(timeStampBuffer));
-		if (motionDetectBuffer[0] == IDLE_MODE) {
-			camera.setMotionDetect(false);
-		} else {
-			camera.setMotionDetect(true);
-		}
-		System.out.println("Fetch");
-		hasImage = false;
-		notifyAll();
-		return true;
-	}
 
-	/**
-	 * Checks if an image is in the placeholder variables, in that case it
-	 * collects the image and stores in the sent in camera variable
-	 * 
-	 * @param camera
-	 *            the placeholder of image data
-	 * @return true if there was an image at this specific time
-	 */
-	public synchronized boolean tryGetImage(Camera camera) {
-		if (!hasImage) {
-			return false;
+		while (!this.cameraQueue.isEmpty()) {
+			fetchQueue.add(cameraQueue.poll());
 		}
-		System.arraycopy(imgBuffer, 0, camera.getJpeg(), 0, imgBuffer.length);
-		camera.setTimeStamp(convertTime(timeStampBuffer));
-		if (motionDetectBuffer[0] == IDLE_MODE) {
-			camera.setMotionDetect(false);
-		} else {
-			camera.setMotionDetect(true);
-		}
+		long timePlaceHolder = refTime;
+		refTime = Long.MAX_VALUE;
 		System.out.println("Fetch");
-		hasImage = false;
-		notifyAll();
-		return true;
+		return timePlaceHolder;
 	}
 
 	private long convertTime(byte[] timeArray) {
@@ -114,11 +101,11 @@ public class ClientMonitor {
 	 * @return the currentMode of operation
 	 * @throws InterruptedException
 	 */
-	public synchronized int getCommand() throws InterruptedException {
-		while (!modeChanged)
+	public synchronized int getCommand(int callerID) throws InterruptedException {
+		while (!commandMap.containsKey(callerID))
 			wait();
-		modeChanged = false;
-		return currentMode;
+		notifyAll();
+		return commandMap.remove(callerID);
 	}
 
 	/**
@@ -127,14 +114,17 @@ public class ClientMonitor {
 	 * 
 	 * @param newCommand
 	 *            the command that is to be changed
+	 * @throws InterruptedException
 	 */
-	public synchronized void setCommand(int newCommand) {
-		if (newCommand == ClientMonitor.DISCONNECT) {
+	public synchronized void setCommand(int newCommand, int callerID) throws InterruptedException {
+		while (commandMap.containsKey(callerID))
+			wait();
+		if (newCommand == ClientMonitor.DISCONNECT){
 			setDisconnect();
 		}
-		currentMode = newCommand;
-		modeChanged = true;
+		commandMap.put(callerID, newCommand);
 		notifyAll();
+
 	}
 
 	private void setDisconnect() {

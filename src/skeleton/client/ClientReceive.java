@@ -17,13 +17,15 @@ public class ClientReceive extends Thread {
 	private byte[] timeStamp = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 	private byte[] motionDetect = new byte[1];
 	private int port;
+	private int cameraID;
 	private String server;
 	private ClientMonitor monitor;
 
-	public ClientReceive(String server, int port, ClientMonitor monitor) {
+	public ClientReceive(String server, int port, ClientMonitor monitor, int cameraID) {
 		this.port = port;
 		this.server = server;
 		this.monitor = monitor;
+		this.cameraID = cameraID;
 	}
 
 	public void run() {
@@ -67,7 +69,7 @@ public class ClientReceive extends Thread {
 
 				// Puts the image in the monitor whith time Data and motion
 				// detect
-				monitor.putImage(jpeg, timeStamp, motionDetect[0]);
+				monitor.putImage(jpeg, timeStamp, motionDetect[0], cameraID);
 			} else {
 				// Something went wrong
 			}
