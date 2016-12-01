@@ -75,14 +75,12 @@ public class ServerReceive extends Thread {
 
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
-                    boolean motion = cm.motionDetected();
-                    if (motion || request.substring(0, 4).equals(MOTION_MODE)) {
+                    if (request.substring(0, 4).equals(MOTION_MODE)) {
                         // Got a CMM request (Change Mode Motion)
                         // or our camera detected motion, respond
                         // by changing the mode and frame rate to
                         // motion.
-                        System.out.println(request);
-                        System.out.println("MOTION ACTIVATE" + motion);
+                        System.out.println("MOTION ACTIVATE");
                         cm.activateMotion(true);
                     } else if (request.substring(0, 4).equals(IDLE_MODE)) {
                         // Got a CMI request (Change Mode Idle),

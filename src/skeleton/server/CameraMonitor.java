@@ -39,7 +39,7 @@ public class CameraMonitor {
     public CameraMonitor(int port) {
         cam = new AxisM3006V();
         cam.init();
-        cam.setProxy("argus-2.student.lth.se", port);
+        cam.setProxy("argus-1.student.lth.se", port);
         imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
         timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
         System.out.println("Trying to connect to camera");
@@ -69,12 +69,15 @@ public class CameraMonitor {
      * time before taking the next.
      */
     public synchronized void takeImage() {
-        cam.getJPEG(imageBox, 0); // put image in imageBox
-        cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
+        //cam.getJPEG(imageBox, 0); // put image in imageBox
+        //cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
         //cam.close();
-        notifyAll();
+        //notifyAll();
         long timestamp = System.currentTimeMillis();
         while (System.currentTimeMillis() < timestamp + frameRate) {
+            cam.getJPEG(imageBox, 0);
+            // Motion detected needs an image to detect motion
+            if (cam.motionDetected()) activateMotion(true);
             try {
                 //System.out.println("Waiting to take picture.");
                 wait(MOTION_FRAMERATE);
@@ -82,6 +85,8 @@ public class CameraMonitor {
                 e.printStackTrace();
             }
         }
+        cam.getTime(timeStampBox, 0);
+        notifyAll();
     }
 
     /**
@@ -163,23 +168,5 @@ public class CameraMonitor {
      */
     public synchronized boolean connected() {
     	return connected;
-    }
-
-    /**
-     * Asks the camera if any motion has been discovered
-     * @return
-     * True: Motion has been detected
-     * False: Motion has not been detected
-     */
-    public synchronized boolean motionDetected(){
-        try {
-            wait(100); // limit CPU time
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        motionDetect = cam.motionDetected();
-    	return motionDetect;
-    	//count = (cam.motionDetected()) ? (count + 1) : 0;
-    	//return (count >= MOTION_DETECTED_DELAY); 
     }
 }

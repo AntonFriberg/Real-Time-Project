@@ -35,7 +35,7 @@ public class Test extends JFrame implements Runnable {
     cam.init();
     cam.connect();
     while (true) {
-      byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
+      final byte[] jpeg = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
       cam.getJPEG(jpeg, 0);
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
