@@ -10,6 +10,8 @@ public class ClientMonitor {
 	public static final int IDLE_MODE = 0;
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
+	public static final int CONNECT = 3;
+	public static final int AUTO_MODE = 4;
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds

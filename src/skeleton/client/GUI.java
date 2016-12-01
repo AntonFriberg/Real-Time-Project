@@ -33,6 +33,7 @@ public class GUI extends JFrame {
 	private JButton btnConnect;
 	private JRadioButton btnMovie;
 	private JRadioButton btnIdle;
+	private JRadioButton btnAuto;
 	private JLabel lbDelay;
 	private JLabel lbMode;
 	private ButtonGroup group;
@@ -52,6 +53,8 @@ public class GUI extends JFrame {
 		btnMovie.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
 		btnIdle = new JRadioButton("Idle", true);
 		btnIdle.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
+		btnAuto = new JRadioButton("Auto", true);
+		btnAuto.addActionListener(new ButtonHandler(this, ClientMonitor.AUTO_MODE));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
@@ -66,6 +69,7 @@ public class GUI extends JFrame {
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(btnAuto);
 		buttonPane.add(btnMovie);
 		buttonPane.add(btnIdle);
 		buttonPane.add(Box.createHorizontalGlue());
