@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -12,36 +13,40 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import javax.swing.JPanel;
 
 import javax.swing.SwingUtilities;
 
-public class GUI extends JPanel {
+public class GUI extends JFrame {
 
-	private ImagePanel imagePanel;
-	
 	private JButton btnDisconnect;
 	private JButton btnConnect;
 	private JButton btnMotionON;
 	private JButton btnMotionOFF;
+	private JButton btnShowAsynch;
 
 	private JCheckBox btnAuto;
-	private JLabel lbDelay;
+
 	private JLabel lbMode;
-	private ButtonGroup group;
+	private JLabel lbSynch;
+
+	private ArrayList<ImagePanel> imagePanelList;
+
 	private boolean firstCall = true;
 	private ClientMonitor monitor;
-	private int cameraID;
 
-	public GUI(int port, ClientMonitor monitor, int cameraID) {
+	public GUI(ClientMonitor monitor, int numberOfCameras) {
 		super();
-		this.cameraID = cameraID;
 		this.monitor = monitor;
 		// this.server = server;
-		imagePanel = new ImagePanel();
+		imagePanelList = new ArrayList<ImagePanel>();
+
+		for (int i = 0; i < numberOfCameras; i++) {
+			imagePanelList.add(new ImagePanel());
+		}
 
 		// this.setTitle("Operating at port : " + port);
 		// The buttons are created
@@ -55,6 +60,10 @@ public class GUI extends JPanel {
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ButtonConnectHandler(this, ClientMonitor.CONNECT));
+		btnShowAsynch = new JButton("Synchronous/Asynchronous");
+		btnShowAsynch.addActionListener(event -> {
+			monitor.changeSynchronousMode();
+		});
 
 		// The buttons are added to a panel
 		JPanel buttonPane = new JPanel();
@@ -64,38 +73,38 @@ public class GUI extends JPanel {
 		buttonPane.add(btnMotionON);
 		buttonPane.add(btnMotionOFF);
 		buttonPane.add(Box.createHorizontalGlue());
-
+		buttonPane.add(btnShowAsynch);
 		buttonPane.add(btnDisconnect);
 		buttonPane.add(btnConnect);
-		lbDelay = new JLabel("Delay Time");
-		lbMode = new JLabel("Mode");
 
+		lbMode = new JLabel("Mode");
+		lbSynch = new JLabel("Sync");
 		// The labels are added to a panel
 		JPanel labelPane = new JPanel();
 		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		labelPane.add(new JLabel("Delay Time : "));
-		labelPane.add(lbDelay);
 		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Motion : "));
 		labelPane.add(lbMode);
+		labelPane.add(new JLabel("Synchronous : "));
+		labelPane.add(lbSynch);
 
-		this.setLayout(new BorderLayout());
-		this.setLayout(new BorderLayout());
-		this.add(imagePanel, BorderLayout.CENTER);
-		this.add(labelPane, BorderLayout.NORTH);
-		this.add(buttonPane, BorderLayout.SOUTH);
-		//
-		// this.getContentPane().setLayout(new BorderLayout());
-		// this.getContentPane().add(imagePanel, BorderLayout.CENTER);
-		// this.getContentPane().add(labelPane, BorderLayout.NORTH);
-		// this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		// this.setLocationRelativeTo(null);
-		// this.pack();
-	}
+		// The image panels show the cameras
+		JPanel imagePanelGroup = new JPanel();
+		for (ImagePanel imagePanel : imagePanelList) {
+			imagePanelGroup.add(imagePanel);
+//		    imagePanel.add(Box.createHorizontalStrut(650));
+//		    imagePanel.add(Box.createVerticalStrut(500));
+		}
 
-	public JPanel getFrame() {
-		return this;
+		this.getContentPane().setLayout(new BorderLayout());
+		this.getContentPane().add(imagePanelGroup, BorderLayout.CENTER);
+		this.getContentPane().add(labelPane, BorderLayout.NORTH);
+		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		this.setLocationRelativeTo(null);
+		this.pack();
+//		this.setVisible(true);
 	}
 
 	public void setMode(boolean motion) {
@@ -105,6 +114,14 @@ public class GUI extends JPanel {
 			lbMode.setText("ON");
 		}
 	}
+	
+	public void setMotionIndicator(boolean motion){
+		if (motion) {
+			lbMode.setText("ON");
+		} else {
+			lbMode.setText("OFF");
+		}
+	}
 
 	/**
 	 * Displays the sent image in the GUI, does not do this direct but invokes
@@ -112,23 +129,25 @@ public class GUI extends JPanel {
 	 * 
 	 * @param image
 	 */
-	public void refreshImage(byte[] image, long waitFor, long delay, boolean motion) {
+	public void refreshImage(byte[] image, long delay, int cameraID) {
 		try {
+			
+			if(cameraID > imagePanelList.size()){
+				return;
+			}
+			
+			ImagePanel tempPanel = imagePanelList.get(cameraID);
+			
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
 			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
-			lbDelay.setText(String.valueOf(delay));
-			if (motion) {
-				lbMode.setText("ON");
-			} else {
-				lbMode.setText("OFF");
-			}
+			
 			SwingUtilities.invokeLater(new Runnable() {
 				// Show image when it is convenient
 				public void run() {
-					imagePanel.refresh(tempImgArray);
+					tempPanel.refresh(tempImgArray, delay);
 				}
 			});
 
@@ -137,10 +156,20 @@ public class GUI extends JPanel {
 		}
 
 	}
+	
+	public void firstCallInitiate(){
+		SwingUtilities.invokeLater(new Runnable() {
+			// Show image when it is convenient
+			public void run() {
+				pack();
+				setVisible(true);
+			}
+		});
+	}
 
 	public void sendCommand(int command) {
 		try {
-			monitor.setCommand(command, cameraID);
+			monitor.setCommand(command);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -150,18 +179,25 @@ public class GUI extends JPanel {
 
 class ImagePanel extends JPanel {
 	ImageIcon icon;
+	JLabel lbDelay;
 
 	public ImagePanel() {
 		super();
 		icon = new ImageIcon();
 		JLabel label = new JLabel(icon);
+		lbDelay = new JLabel();
 		add(label, BorderLayout.CENTER);
-		this.setSize(200, 200);
+		JPanel labelPanel = new JPanel();
+		labelPanel.add(new JLabel("Delay : "));
+		labelPanel.add(lbDelay);
+	
+		add(labelPanel, BorderLayout.SOUTH);
+		this.setSize(600,500);
 	}
 
-	public void refresh(byte[] data) {
+	public void refresh(byte[] data, long delay) {
 		Image theImage = getToolkit().createImage(data);
-
+		lbDelay.setText(String.valueOf(delay));
 		getToolkit().prepareImage(theImage, -1, -1, null);
 		icon.setImage(theImage);
 		icon.paintIcon(this, this.getGraphics(), 5, 5);

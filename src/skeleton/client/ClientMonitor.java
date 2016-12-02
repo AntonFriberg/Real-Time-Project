@@ -15,7 +15,6 @@ public class ClientMonitor {
 	//
 
 	private Queue<Camera> cameraQueue;
-	private HashMap<Integer, Integer> commandMap;
 	public static final int IDLE_MODE = 0;
 	public static final int MOVIE_MODE = 1;
 	public static final int DISCONNECT = 2;
@@ -28,9 +27,13 @@ public class ClientMonitor {
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
 
+	
 	private int numberOfCameras;
 	private boolean receiveShouldDisconnect;
-
+	private boolean showAsynchronous = true;
+	private boolean hasCommand = false;
+	private int command;
+	
 	public ClientMonitor(int numberOfCameras) {
 		this.numberOfCameras = numberOfCameras;
 		cameraQueue = new PriorityQueue<Camera>(numberOfCameras, new Comparator<Camera>() {
@@ -39,7 +42,6 @@ public class ClientMonitor {
 				return (int) (c1.getTimeStamp() - c2.getTimeStamp());
 			}
 		});
-		commandMap = new HashMap<Integer, Integer>();
 	}
 
 	/**
@@ -86,6 +88,23 @@ public class ClientMonitor {
 		}
 		System.out.println("Fetched All");
 	}
+	
+	/**
+	 * 
+	 * @param showAsynchronous
+	 */
+	public synchronized void changeSynchronousMode(){
+		showAsynchronous = !showAsynchronous;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public synchronized boolean setShowAsynchronous(){
+		return showAsynchronous = true;
+	}
+	
 	/**
 	 * 
 	 * @param fetchQueue
@@ -126,11 +145,13 @@ public class ClientMonitor {
 	 * @return the currentMode of operation
 	 * @throws InterruptedException
 	 */
-	public synchronized int getCommand(int callerID) throws InterruptedException {
-		while (!commandMap.containsKey(callerID))
+	public synchronized int getCommand() throws InterruptedException {
+		while (!hasCommand)
 			wait();
 		notifyAll();
-		return commandMap.remove(callerID);
+		hasCommand = true;
+		return command;
+		
 	}
 
 	/**
@@ -141,15 +162,14 @@ public class ClientMonitor {
 	 *            the command that is to be changed
 	 * @throws InterruptedException
 	 */
-	public synchronized void setCommand(int newCommand, int callerID) throws InterruptedException {
-		while (commandMap.containsKey(callerID))
-			wait();
+	public synchronized void setCommand(int newCommand) throws InterruptedException {
 		if (newCommand == ClientMonitor.DISCONNECT) {
 			setDisconnect();
 		} else if(newCommand == ClientMonitor.CONNECT) {
 			setConnect();
 		}
-		commandMap.put(callerID, newCommand);
+		command = newCommand;
+		hasCommand = true;
 		notifyAll();
 
 	}
