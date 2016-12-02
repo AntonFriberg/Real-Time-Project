@@ -85,13 +85,7 @@ public class GUI extends JPanel {
 		this.add(imagePanel, BorderLayout.CENTER);
 		this.add(labelPane, BorderLayout.NORTH);
 		this.add(buttonPane, BorderLayout.SOUTH);
-		//
-		// this.getContentPane().setLayout(new BorderLayout());
-		// this.getContentPane().add(imagePanel, BorderLayout.CENTER);
-		// this.getContentPane().add(labelPane, BorderLayout.NORTH);
-		// this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		// this.setLocationRelativeTo(null);
-		// this.pack();
+		
 	}
 
 	public JPanel getFrame() {

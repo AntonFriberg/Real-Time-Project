@@ -77,7 +77,7 @@ public class CameraMonitor {
         while (System.currentTimeMillis() < timestamp + frameRate) {
             cam.getJPEG(imageBox, 0);
             // Motion detected needs an image to detect motion
-            if (cam.motionDetected()) activateMotion(true);
+            if (auto && cam.motionDetected()) activateMotion(true);
             try {
                 //System.out.println("Waiting to take picture.");
                 wait(MOTION_FRAMERATE);
@@ -109,7 +109,8 @@ public class CameraMonitor {
         	motionDetectBox = new byte[1];
         	motionDetectBox[0] = mode;
         }
-        	
+        System.out.println(auto + "mode");
+        
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
         byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
         byte[] tsDataPacket = new byte[timeStampBox.length + CRLF.length];
