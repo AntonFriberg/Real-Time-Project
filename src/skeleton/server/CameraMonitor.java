@@ -28,7 +28,7 @@ public class CameraMonitor {
     private boolean connected = false;
     private int count;
     private static int MOTION_DETECTED_DELAY = 10;
-
+    private boolean auto = true;
     /**
      * Creates camera object and initializes arrays,
      * tries to connect to camera.
@@ -100,11 +100,16 @@ public class CameraMonitor {
      * @throws IOException
      */
     public synchronized void sendImage(OutputStream os) throws IOException {
-        byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
-    	motionDetectBox = new byte[1];
-        motionDetectBox[0] = mode;
-        System.out.println((int) motionDetectBox[0]);
-        System.out.println();
+        if (auto) {
+        	byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
+        	motionDetectBox = new byte[1];
+        	motionDetectBox[0] = mode;
+        } else {
+        	byte mode = (byte) 0;
+        	motionDetectBox = new byte[1];
+        	motionDetectBox[0] = mode;
+        }
+        	
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
         byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
         byte[] tsDataPacket = new byte[timeStampBox.length + CRLF.length];
@@ -168,5 +173,13 @@ public class CameraMonitor {
      */
     public synchronized boolean connected() {
     	return connected;
+    }
+    
+    public synchronized void setAuto(boolean auto) {
+    	this.auto = auto;
+    }
+    
+    public synchronized boolean getAuto() {
+    	return auto;
     }
 }

@@ -38,42 +38,42 @@ public class ClientSend extends Thread {
 
 	private void sendCommand() throws UnknownHostException, IOException, InterruptedException {
 		while (true) {
-			if (!monitor.shouldDisconnect()) {
-				sock = new Socket(server, port);
-				is = sock.getInputStream();
-				os = sock.getOutputStream();
-				System.out.println("Client sending at " + port);
-		
-				while (sock.isConnected()) {
-					int newCommand = monitor.getCommand(cameraID);
-					System.out.println("Sending + : ");
-					if (newCommand == ClientMonitor.IDLE_MODE) {
-						System.out.println(MOTION_OFF);
-						putLine(os, MOTION_OFF); // Start the transmission of pictures
-						putLine(os, ""); // The request ends with an empty line
-					} else if (newCommand == ClientMonitor.MOVIE_MODE) {
-						System.out.println(MOTION_OFF);
-						putLine(os, MOTION_ON); // Start the transmission of pictures
-						putLine(os, ""); // The request ends with an empty line
-					} else {
-						System.out.println(MOTION_OFF);
-						putLine(os, DISCONNECT); // Start the transmission of pictures
-						putLine(os, ""); // The request ends with an empty line
-					}
-					os.flush();
+			monitor.waitForConnect();
+			sock = new Socket(server, port);
+			is = sock.getInputStream();
+			os = sock.getOutputStream();
+			System.out.println("Client sending at " + port);
+	
+			while (sock.isConnected()) {
+				int newCommand = monitor.getCommand(cameraID);
+				System.out.println("Sending + : ");
+				if (newCommand == ClientMonitor.IDLE_MODE) {
+					System.out.println(MOTION_OFF);
+					putLine(os, MOTION_OFF); // Start the transmission of pictures
+					putLine(os, ""); // The request ends with an empty line
+				} else if (newCommand == ClientMonitor.MOVIE_MODE) {
+					System.out.println(MOTION_OFF);
+					putLine(os, MOTION_ON); // Start the transmission of pictures
+					putLine(os, ""); // The request ends with an empty line
+				} else {
+					System.out.println(MOTION_OFF);
+					putLine(os, DISCONNECT); // Start the transmission of pictures
+					putLine(os, ""); // The request ends with an empty line
 				}
-				try {
-					is.close();
-					os.close();
-					sock.close();
-				}catch (IOException e) {
-                    //System.out.println("Caught exception " + e);
-                }finally {
-				
-				}
+				os.flush();
+			}
+			try {
+				is.close();
+				os.close();
+				sock.close();
+			}catch (IOException e) {
+                //System.out.println("Caught exception " + e);
+            }finally {
+			
 			}
 		}
 	}
+
 
 	/**
 	 * Read a line from InputStream 's', terminated by CRLF. The CRLF is not

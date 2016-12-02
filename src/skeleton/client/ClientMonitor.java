@@ -26,7 +26,7 @@ public class ClientMonitor {
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
 
 	private int numberOfCameras;
-	private boolean receiveShouldDisconnect;
+	private boolean receiveShouldDisconnect = false;
 
 	public ClientMonitor(int numberOfCameras) {
 		this.numberOfCameras = numberOfCameras;
@@ -167,8 +167,8 @@ public class ClientMonitor {
 		return receiveShouldDisconnect;
 	}
 	
-	public synchronized void shouldConnect() throws InterruptedException{
-		while(!receiveShouldDisconnect)
+	public synchronized void waitForConnect() throws InterruptedException{
+		while(receiveShouldDisconnect)
 			wait();
 	}
 	
