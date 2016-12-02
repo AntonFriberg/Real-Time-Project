@@ -129,16 +129,6 @@ public class GUI extends JPanel {
 				}
 			});
 
-//			if (firstCall) {
-//				SwingUtilities.invokeLater(new Runnable() {
-//					public void run() {
-//						pack();
-//						setVisible(true);
-//						firstCall = false;
-//						setResizable(false);
-//					}
-//				});
-//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

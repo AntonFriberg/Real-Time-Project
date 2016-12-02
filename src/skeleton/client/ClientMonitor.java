@@ -166,5 +166,11 @@ public class ClientMonitor {
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
+	
+	public synchronized void shouldConnect() throws InterruptedException{
+		while(!receiveShouldDisconnect)
+			wait();
+	}
+	
 
 }
