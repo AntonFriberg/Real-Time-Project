@@ -6,8 +6,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import se.lth.cs.eda040.fakecamera.AxisM3006V;
-
 public class ClientSend extends Thread {
 	private Socket sock;
 	private InputStream is;
@@ -19,7 +17,10 @@ public class ClientSend extends Thread {
 	public static final String MOTION_OFF = "CMI ";
 	public static final String MOTION_ON = "CMM ";
 	public static final String DISCONNECT = "DSC ";
+	public static final String AUTOMAGICALLY = "AUT ";
+	public static final String MANUAGICALLY = "MAN ";
 	private	int cameraID;
+	
 	public ClientSend(String server, int port, ClientMonitor monitor, int cameraID) {
 		this.server = server;
 		this.port = port;
@@ -52,12 +53,20 @@ public class ClientSend extends Thread {
 					putLine(os, MOTION_OFF); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				} else if (newCommand == ClientMonitor.MOVIE_MODE) {
-					System.out.println(MOTION_OFF);
+					System.out.println(MOTION_ON);
 					putLine(os, MOTION_ON); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
-				} else {
+				} else if (newCommand == ClientMonitor.IDLE_MODE){
 					System.out.println(MOTION_OFF);
 					putLine(os, DISCONNECT); // Start the transmission of pictures
+					putLine(os, ""); // The request ends with an empty line
+				} else if (newCommand == ClientMonitor.AUTO_MODE){
+					System.out.println(AUTOMAGICALLY);
+					putLine(os, AUTOMAGICALLY); // Start the transmission of pictures
+					putLine(os, ""); // The request ends with an empty line
+				} else {
+					System.out.println(MANUAGICALLY);
+					putLine(os, MANUAGICALLY); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				}
 				os.flush();
@@ -67,34 +76,11 @@ public class ClientSend extends Thread {
 				os.close();
 				sock.close();
 			}catch (IOException e) {
-                //System.out.println("Caught exception " + e);
-            }finally {
+	            //System.out.println("Caught exception " + e);
+	        }finally {
 			
-			}
+	        }
 		}
-	}
-
-
-	/**
-	 * Read a line from InputStream 's', terminated by CRLF. The CRLF is not
-	 * included in the returned string.
-	 */
-	private static String getLine(InputStream s) throws IOException {
-		boolean done = false;
-		String result = "";
-
-		while (!done) {
-			int ch = s.read(); // Read
-			if (ch <= 0 || ch == 10) {
-				// Something < 0 means end of data (closed socket)
-				// ASCII 10 (line feed) means end of line
-				done = true;
-			} else if (ch >= ' ') {
-				result += (char) ch;
-			}
-		}
-
-		return result;
 	}
 
 	/**

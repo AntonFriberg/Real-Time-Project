@@ -11,21 +11,24 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.JCheckBox;
+
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+
 import javax.swing.SwingUtilities;
 
 public class GUI extends JPanel {
-	
+
 	private ImagePanel imagePanel;
+	
 	private JButton btnDisconnect;
 	private JButton btnConnect;
 	private JButton btnMotionON;
 	private JButton btnMotionOFF;
-	private JRadioButton btnAuto;
+
+	private JCheckBox btnAuto;
 	private JLabel lbDelay;
 	private JLabel lbMode;
 	private ButtonGroup group;
@@ -40,14 +43,14 @@ public class GUI extends JPanel {
 		// this.server = server;
 		imagePanel = new ImagePanel();
 
-//		this.setTitle("Operating at port : " + port);
+		// this.setTitle("Operating at port : " + port);
 		// The buttons are created
 		btnMotionON = new JButton("Motion On" + "");
 		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
 		btnMotionOFF = new JButton("Motion Off");
 		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
-		btnAuto = new JRadioButton("Auto", true);
-		btnAuto.addActionListener(new ButtonHandler(this, ClientMonitor.AUTO_MODE));
+		btnAuto = new JCheckBox("Auto", true);
+		btnAuto.addActionListener(new CheckBoxHandler(btnAuto, this));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
@@ -82,16 +85,16 @@ public class GUI extends JPanel {
 		this.add(imagePanel, BorderLayout.CENTER);
 		this.add(labelPane, BorderLayout.NORTH);
 		this.add(buttonPane, BorderLayout.SOUTH);
-//		
-//		this.getContentPane().setLayout(new BorderLayout());
-//		this.getContentPane().add(imagePanel, BorderLayout.CENTER);
-//		this.getContentPane().add(labelPane, BorderLayout.NORTH);
-//		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
-//		this.setLocationRelativeTo(null);
-//		this.pack();
+		//
+		// this.getContentPane().setLayout(new BorderLayout());
+		// this.getContentPane().add(imagePanel, BorderLayout.CENTER);
+		// this.getContentPane().add(labelPane, BorderLayout.NORTH);
+		// this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		// this.setLocationRelativeTo(null);
+		// this.pack();
 	}
-	
-	public JPanel getFrame(){
+
+	public JPanel getFrame() {
 		return this;
 	}
 
@@ -129,7 +132,6 @@ public class GUI extends JPanel {
 				}
 			});
 
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -166,9 +168,29 @@ class ImagePanel extends JPanel {
 	}
 }
 
+class CheckBoxHandler implements ActionListener {
+	GUI gui;
+	JCheckBox checkBox;
+
+	public CheckBoxHandler(JCheckBox checkBox, GUI gui) {
+		this.checkBox = checkBox;
+		this.gui = gui;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (checkBox.isSelected()) {
+			gui.sendCommand(ClientMonitor.AUTO_MODE);
+		} else {
+			gui.sendCommand(ClientMonitor.MANUAL_MODE);
+		}
+	}
+}
+
 class ButtonConnectHandler implements ActionListener {
 	GUI gui;
 	private int command;
+
 	public ButtonConnectHandler(GUI gui, int command) {
 		this.command = command;
 		this.gui = gui;
