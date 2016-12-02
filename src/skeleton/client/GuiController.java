@@ -1,11 +1,18 @@
 package skeleton.client;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 public class GuiController extends Thread {
 
@@ -16,11 +23,24 @@ public class GuiController extends Thread {
 	private GUI gui1;
 	private GUI gui2;
 	private JFrame mainFrame;
+	private JMenuBar menuBar;
+	private JMenu menu, submenu;
+	private JMenuItem menuItem;
 
 	public GuiController() {
 		mainFrame = new JFrame();
 		numberOfCameras = 2;
 		monitor = new ClientMonitor(2);
+
+		menuBar = new JMenuBar();
+		menu = new JMenu("A Menu");
+		menuBar.add(menu);
+		menuItem = new JMenuItem("A text-only menu item", KeyEvent.VK_T);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription("This doesn't really do anything");
+		menu.add(menuItem);
+		mainFrame.setJMenuBar(menuBar);
+		
 		this.gui1 = new GUI(6077, monitor, 0);
 		this.gui2 = new GUI(6080, monitor, 1);
 		JPanel guiPanel = new JPanel();
