@@ -111,7 +111,7 @@ public class GUI extends JPanel {
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
-			byte[] tempImgArray = new byte[image.length];
+			final byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			lbDelay.setText(String.valueOf(delay));
 			if (motion) {

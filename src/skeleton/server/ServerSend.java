@@ -1,5 +1,6 @@
 package skeleton.server;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,8 +31,8 @@ public class ServerSend extends Thread{
     public void run() {
         try {
             serverSocket = new ServerSocket(port);
-            serverSocket.setSoTimeout(180000);  // Socket will timeout after 18 s of inactivity
-            System.out.println("HTTP sending server operating at port " + port + ".");
+            //serverSocket.setSoTimeout(180000);  // Socket will timeout after 18 s of inactivity
+            System.out.println("HTTP sending server operating at port: " + port + ".");
 
             // initialize empty network objects
             Socket server = null;
@@ -70,14 +71,13 @@ public class ServerSend extends Thread{
                     } while (cont);
 
                     System.out.println("HTTP request '" + request
-                            + "' received.");
+                            + "' received by ServerSend.");
 
                     // Start sending images after start command is received.
                     // Continue sending while the connection is active
                     if (request.substring(0, 4).equals(START_CONNECTION)) {
                         // Until the client tells us to disconnect
                         while (cm.connected()) {
-                            System.out.println("sending image");
                             cm.sendImage(os);
                             os.flush();
                         }
@@ -87,7 +87,8 @@ public class ServerSend extends Thread{
 
                 } catch (IOException e) {
                     System.out.println("Caught exception " + e);
-
+                } catch (Exception e) {
+                    System.out.println("Caught exception " + e);
                 } finally {
                     // Clean up remaining connections before listening one
                     try {
@@ -101,8 +102,11 @@ public class ServerSend extends Thread{
             }
         } catch (SocketException e) {
             e.printStackTrace();
+            System.out.println("Socket exception found, recovering.");
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (StringIndexOutOfBoundsException e) {
+            System.out.println("Received strange request, recovering");
         } finally {
             // Clean up connection at shutdown
             try {

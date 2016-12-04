@@ -7,6 +7,9 @@ import skeleton.server.CameraHandler;
 import skeleton.server.CameraMonitor;
 import skeleton.server.ServerReceive;
 import skeleton.server.ServerSend;
+import skeleton.server.Server;
+
+import static java.lang.Thread.sleep;
 
 public class SocketTest {
 
@@ -14,22 +17,20 @@ public class SocketTest {
      
     	int sendPorts[] = {6077, 6080};
         int receivePorts[] = {6078, 6081};
-        CameraMonitor cm1 = new CameraMonitor(sendPorts[0]);
-        ServerSend serverSend1 = new ServerSend(sendPorts[0], cm1);
-        serverSend1.start();
-        ServerReceive serverRec1 = new ServerReceive(receivePorts[0], cm1);
-        serverRec1.start();
-        CameraHandler cam1 = new CameraHandler(cm1);
-        cam1.start();
-        
-        CameraMonitor cm2 = new CameraMonitor(sendPorts[1]);
-        ServerSend serverSend2 = new ServerSend(sendPorts[1], cm2);
-        serverSend2.start();
-        ServerReceive serverRec2 = new ServerReceive(receivePorts[1], cm2);
-        serverRec2.start();
-        CameraHandler cam2 = new CameraHandler(cm2);
-        cam2.start();
+
+        //Server cam1 = new Server(sendPorts[0], receivePorts[0]);
+        //Server cam2 = new Server(sendPorts[1], receivePorts[1]);
+        //cam1.start();
+        //cam2.start();
         
         CameraController.main(new String[]{"localhost", "6077", "6080", "6078", "6081"});
+
+        while (true) {
+            try {
+                sleep(10000);
+            } catch (InterruptedException e) {
+                System.exit(0);
+            }
+        }
     }
 }
