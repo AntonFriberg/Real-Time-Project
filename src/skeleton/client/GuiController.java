@@ -66,6 +66,7 @@ public class GuiController extends Thread {
 					}
 				}
 				gui.setMode(anyHasMotion);
+				gui.setSynchIndicator(!asynchronous);
 				anyHasMotion = false;
 
 				while (!cameraQueue.isEmpty()) {

@@ -19,7 +19,7 @@ public class ClientMonitor {
 	public static final int MANUAL_MODE = 5;
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
-	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
+	public static final int SYNCHRONIZATION_THRESHOLD = 200; // 200 milliseconds
 
 	private Queue<Camera> cameraQueue; // A temporary storage for cameras which
 										// are to be displayed

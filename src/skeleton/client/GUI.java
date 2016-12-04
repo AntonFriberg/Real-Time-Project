@@ -84,9 +84,9 @@ public class GUI extends JFrame {
 		JPanel labelPane = new JPanel();
 		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Motion : "));
 		labelPane.add(lbMode);
+		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Synchronous : "));
 		labelPane.add(lbSynch);
 
@@ -118,6 +118,14 @@ public class GUI extends JFrame {
 			lbMode.setText("OFF");
 		} else {
 			lbMode.setText("ON");
+		}
+	}
+	
+	public void setSynchIndicator(boolean synch){
+		if(synch){
+			lbSynch.setText("ON");
+		} else {
+			lbSynch.setText("OFF");
 		}
 	}
 	
