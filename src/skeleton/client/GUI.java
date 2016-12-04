@@ -33,7 +33,7 @@ public class GUI extends JFrame {
 	private JLabel lbMode;
 	private JLabel lbSynch;
 
-	private ArrayList<ImagePanel> imagePanelList;
+	private ArrayList<CameraPanel> cameraPanelList;
 
 	private boolean firstCall = true;
 	private ClientMonitor monitor;
@@ -42,10 +42,10 @@ public class GUI extends JFrame {
 		super();
 		this.monitor = monitor;
 		// this.server = server;
-		imagePanelList = new ArrayList<ImagePanel>();
+		cameraPanelList = new ArrayList<CameraPanel>();
 
 		for (int i = 0; i < numberOfCameras; i++) {
-			imagePanelList.add(new ImagePanel());
+			cameraPanelList.add(new CameraPanel());
 		}
 
 		// this.setTitle("Operating at port : " + port);
@@ -90,15 +90,15 @@ public class GUI extends JFrame {
 		labelPane.add(lbSynch);
 
 		// The image panels show the cameras
-		JPanel imagePanelGroup = new JPanel();
-		for (ImagePanel imagePanel : imagePanelList) {
-			imagePanelGroup.add(imagePanel);
-		    imagePanel.add(Box.createHorizontalStrut(320));
-		    imagePanel.add(Box.createVerticalStrut(300));
+		JPanel cameraPanelGroup = new JPanel();
+		for (CameraPanel cameraPanel : cameraPanelList) {
+			cameraPanelGroup.add(cameraPanel);
+//		    cameraPanel.add(Box.createHorizontalStrut(320));
+//		    cameraPanel.add(Box.createVerticalStrut(300));
 		}
 
 		this.getContentPane().setLayout(new BorderLayout());
-		this.getContentPane().add(imagePanelGroup, BorderLayout.CENTER);
+		this.getContentPane().add(cameraPanelGroup, BorderLayout.CENTER);
 		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
@@ -135,11 +135,11 @@ public class GUI extends JFrame {
 	public void refreshImage(byte[] image, long delay, int cameraID) {
 		try {
 			
-			if(cameraID > imagePanelList.size()){
+			if(cameraID > cameraPanelList.size()){
 				return;
 			}
 			
-			ImagePanel tempPanel = imagePanelList.get(cameraID);
+			CameraPanel tempPanel = cameraPanelList.get(cameraID);
 			
 			// In order to prevent swing from trying to display a corrupt
 			// image
@@ -189,7 +189,14 @@ class CameraPanel extends JPanel {
 		super();
 		imagePanel = new ImagePanel();
 		lbDelay = new JLabel("Delay");
-		
+		setLayout(new BorderLayout());
+		add(lbDelay, BorderLayout.NORTH);
+		add(imagePanel, BorderLayout.SOUTH);
+	}
+	
+	public void refresh(byte[] data, long delay){
+		lbDelay.setText("Delay Time : " + String.valueOf(delay));
+		imagePanel.refresh(data);
 	}
 }
 
@@ -203,17 +210,12 @@ class ImagePanel extends JPanel {
 		super();
 		icon = new ImageIcon();
 		JLabel label = new JLabel(icon);
-		lbDelay = new JLabel("Delay");
-		setLayout(new BorderLayout());
 		add(label, BorderLayout.SOUTH);
-		add(new JLabel("Delay Time : "), BorderLayout.NORTH);
-		add(lbDelay, BorderLayout.NORTH);
-		this.setSize(200,200);
+		this.setSize(320,240);
 
 	}
 
-	public void refresh(byte[] data, long delay) {
-		lbDelay.setText(String.valueOf(delay));
+	public void refresh(byte[] data) {
 		Image theImage = getToolkit().createImage(data);
 		getToolkit().prepareImage(theImage, -1, -1, null);
 		icon.setImage(theImage);
