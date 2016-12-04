@@ -2,6 +2,7 @@ package skeleton.server;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
+ * Thread that takes images
  */
 public class CameraHandler extends Thread{
     /**

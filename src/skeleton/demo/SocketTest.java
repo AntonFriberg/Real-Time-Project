@@ -17,7 +17,6 @@ public class SocketTest {
      
     	//int sendPorts[] = {6077, 6080};
         //int receivePorts[] = {6078, 6081};
-//
         //Server cam1 = new Server(sendPorts[0], receivePorts[0]);
         //Server cam2 = new Server(sendPorts[1], receivePorts[1]);
         //cam1.start();

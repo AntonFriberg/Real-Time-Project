@@ -9,6 +9,7 @@ import java.net.SocketException;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
+ * Thread that listens for commands
  */
 public class ServerReceive extends Thread {
 	/**
@@ -110,14 +111,6 @@ public class ServerReceive extends Thread {
                         // rate to idle.
                     	System.out.println("MANUAL ACTIVATE");
                         cm.setAuto(false);
-                    } else {
-                        // Got some other request. Respond with an error message.
-//                        putLine(os, "HTTP/1.0 501 Method not implemented");
-//                        putLine(os, "Content-Type: text/plain");
-//                        putLine(os, "");
-//                        putLine(os, "No can do. Request '" + request + "' not understood.");
-//
-//                        System.out.println("Unsupported HTTP request!");
                     }
                 }
 				os.flush(); // Flush any remaining content
