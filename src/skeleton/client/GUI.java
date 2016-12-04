@@ -181,6 +181,18 @@ public class GUI extends JFrame {
 }
 
 
+class CameraPanel extends JPanel {
+	ImagePanel imagePanel;
+	JLabel lbDelay;
+	
+	public CameraPanel(){
+		super();
+		imagePanel = new ImagePanel();
+		lbDelay = new JLabel("Delay");
+		
+	}
+}
+
 
 class ImagePanel extends JPanel {
 	ImageIcon icon;

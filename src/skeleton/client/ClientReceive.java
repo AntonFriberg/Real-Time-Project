@@ -86,7 +86,7 @@ public class ClientReceive extends Thread {
 	        }finally {
 			
 			}
-		sleep(500);
+		//sleep(200); //IF not included an error will occur for trying connect to often
 		}
 	}
 

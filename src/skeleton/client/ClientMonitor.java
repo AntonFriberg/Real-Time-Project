@@ -3,6 +3,7 @@ package skeleton.client;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -27,7 +28,7 @@ public class ClientMonitor {
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
 
-	
+	HashMap<Integer, Boolean> cmdMap;
 	private int numberOfCameras;
 	private boolean showAsynchronous = true;
 	private boolean hasCommand = false;
@@ -36,6 +37,10 @@ public class ClientMonitor {
 	private boolean receiveShouldDisconnect = false;
 
 	public ClientMonitor(int numberOfCameras) {
+		cmdMap = new HashMap<Integer, Boolean>();
+		for(int i = 0; i < numberOfCameras; i++){
+			cmdMap.put(i, false);
+		}
 		this.numberOfCameras = numberOfCameras;
 		cameraQueue = new PriorityQueue<Camera>(numberOfCameras, new Comparator<Camera>() {
 			@Override
@@ -146,13 +151,23 @@ public class ClientMonitor {
 	 * @return the currentMode of operation
 	 * @throws InterruptedException
 	 */
-	public synchronized int getCommand() throws InterruptedException {
-		while (!hasCommand)
+	public synchronized int getCommand(int cameraID) throws InterruptedException {
+		while (!camHasCommand(cameraID))
 			wait();
 		notifyAll();
-		hasCommand = false;
-		return command;
-		
+		return command;	
+	}
+	
+	private void setCommandAvailable(){
+		for(Entry<Integer, Boolean> entry : cmdMap.entrySet()){
+			entry.setValue(true);
+		}
+	}
+	private boolean camHasCommand(int cameraID){
+		if(cmdMap.containsKey(cameraID)){
+			return cmdMap.replace(cameraID, false);
+		}
+		return false;
 	}
 
 	/**
@@ -169,8 +184,8 @@ public class ClientMonitor {
 		} else if(newCommand == ClientMonitor.CONNECT) {
 			setConnect();
 		}
+		setCommandAvailable();
 		command = newCommand;
-		hasCommand = true;
 		notifyAll();
 
 	}
