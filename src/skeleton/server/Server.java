@@ -1,7 +1,10 @@
 package skeleton.server;
 
 /**
- * Created by Anton Friberg on 04/12/16.
+ * Created by Anton Friberg and Joakim Magnusson on 04/12/16.
+ *
+ * Umbrella class that collects the monitor and threads for
+ * the server side.
  */
 public class Server {
     private ServerReceive receive;
@@ -9,6 +12,13 @@ public class Server {
     private CameraMonitor cm;
     private CameraHandler ch;
 
+    /**
+     * Constructor that creates the monitor and threads
+     * @param receivePort
+     * The client's receive port
+     * @param sendPort
+     * The client's send port
+     */
     public Server(int receivePort, int sendPort) {
         cm = new CameraMonitor(sendPort);
         send = new ServerSend(receivePort, cm);
@@ -16,19 +26,21 @@ public class Server {
         ch = new CameraHandler(cm);
     }
 
+    /**
+     * The method to start the threads
+     */
     public void start() {
         send.start();
         receive.start();
         ch.start();
-        try {
-            send.join();
-            receive.join();
-            ch.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
+    /**
+     * Main method for ability to run Server on camera
+     * independently of the client.
+     * @param args
+     * Two arguments [Client's Receive Port, Client's Send Port]
+     */
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("Faulty argument count (needs two): Receive Port, Send Port");

@@ -8,12 +8,14 @@ import java.io.OutputStream;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
+ * Monitor object that provide the synchronized methods.
  */
 public class CameraMonitor {
     /**
      * Keeps hold of the latest produced images, timestamps and current modes. Contains
      * thread safe methods for each of the necessary interactions on the contained data.
      */
+    // The camera location
     private static String PROXY = "argus-1.student.lth.se";
     private static long IDLE_FRAMERATE = 5000;
     private static long MOTION_FRAMERATE = 40;

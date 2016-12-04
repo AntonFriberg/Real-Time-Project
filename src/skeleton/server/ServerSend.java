@@ -10,6 +10,7 @@ import java.net.SocketException;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
+ * Thread that sends images
  */
 public class ServerSend extends Thread{
     /**
