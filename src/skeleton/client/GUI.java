@@ -105,7 +105,11 @@ public class GUI extends JFrame {
 		this.setLocationRelativeTo(null);
 		this.pack();
 //		this.setVisible(true);
+
+		
 	}
+
+
 
 	public void setMode(boolean motion) {
 		if (!motion) {
@@ -185,19 +189,13 @@ class ImagePanel extends JPanel {
 		super();
 		icon = new ImageIcon();
 		JLabel label = new JLabel(icon);
-		lbDelay = new JLabel();
-		add(label, BorderLayout.CENTER);
-		JPanel labelPanel = new JPanel();
-		labelPanel.add(new JLabel("Delay : "));
-		labelPanel.add(lbDelay);
+		add(label, BorderLayout.SOUTH);
 	
-		add(labelPanel, BorderLayout.SOUTH);
-		this.setSize(600,500);
+		this.setSize(200,200);
 	}
 
 	public void refresh(byte[] data, long delay) {
 		Image theImage = getToolkit().createImage(data);
-		lbDelay.setText(String.valueOf(delay));
 		getToolkit().prepareImage(theImage, -1, -1, null);
 		icon.setImage(theImage);
 		icon.paintIcon(this, this.getGraphics(), 5, 5);

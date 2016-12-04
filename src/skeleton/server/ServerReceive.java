@@ -19,6 +19,8 @@ public class ServerReceive extends Thread {
     private static final String MOTION_MODE = "CMM ";
     private static final String IDLE_MODE = "CMI ";
     private static final String DISCONNECT = "DSC ";
+    private static final String AUTO_MODE = "AUT ";
+    private static final String MANUAL_MODE = "MAN ";
 	private static final byte[] CRLF = { 13, 10 }; //
 	private int port;
 	private CameraMonitor cm;
@@ -88,13 +90,25 @@ public class ServerReceive extends Thread {
                         // rate to idle.
                     	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
-                    }else if (request.substring(0, 4).equals(DISCONNECT)){ // servern ska aldrig köra disconect!!!!
+                    } else if (request.substring(0, 4).equals(DISCONNECT)){ // servern ska aldrig köra disconect!!!!
                         // Got a DSC request (Disconnect)
                         // respond by propagating the closure
                         // of sockets via the monitor
                         //System.out.println("DISCONNECT SOCKETS");
                         //System.out.println("Received DSC");
                         //cm.disconnect();
+                    } else if (request.substring(0, 4).equals(AUTO_MODE)) {
+                        // Got a CMI request (Change Mode Idle),
+                        // respond by changing mode and frame
+                        // rate to idle.
+                    	System.out.println("AUTO ACTIVATE");
+                        cm.setAuto(true);
+                    } else if (request.substring(0, 4).equals(MANUAL_MODE)) {
+                        // Got a CMI request (Change Mode Idle),
+                        // respond by changing mode and frame
+                        // rate to idle.
+                    	System.out.println("MANUAL ACTIVATE");
+                        cm.setAuto(false);
                     } else {
                         // Got some other request. Respond with an error message.
 //                        putLine(os, "HTTP/1.0 501 Method not implemented");

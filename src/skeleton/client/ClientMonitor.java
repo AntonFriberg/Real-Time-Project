@@ -29,11 +29,12 @@ public class ClientMonitor {
 
 	
 	private int numberOfCameras;
-	private boolean receiveShouldDisconnect;
 	private boolean showAsynchronous = true;
 	private boolean hasCommand = false;
 	private int command;
 	
+	private boolean receiveShouldDisconnect = false;
+
 	public ClientMonitor(int numberOfCameras) {
 		this.numberOfCameras = numberOfCameras;
 		cameraQueue = new PriorityQueue<Camera>(numberOfCameras, new Comparator<Camera>() {
@@ -190,8 +191,8 @@ public class ClientMonitor {
 		return receiveShouldDisconnect;
 	}
 	
-	public synchronized void shouldConnect() throws InterruptedException{
-		while(!receiveShouldDisconnect)
+	public synchronized void waitForConnect() throws InterruptedException{
+		while(receiveShouldDisconnect)
 			wait();
 	}
 	
