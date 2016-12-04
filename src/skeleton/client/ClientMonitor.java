@@ -150,7 +150,7 @@ public class ClientMonitor {
 		while (!hasCommand)
 			wait();
 		notifyAll();
-		hasCommand = true;
+		hasCommand = false;
 		return command;
 		
 	}

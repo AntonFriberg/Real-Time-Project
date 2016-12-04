@@ -83,7 +83,6 @@ public class GUI extends JFrame {
 		JPanel labelPane = new JPanel();
 		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		labelPane.add(new JLabel("Delay Time : "));
 		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Motion : "));
 		labelPane.add(lbMode);
@@ -94,8 +93,8 @@ public class GUI extends JFrame {
 		JPanel imagePanelGroup = new JPanel();
 		for (ImagePanel imagePanel : imagePanelList) {
 			imagePanelGroup.add(imagePanel);
-//		    imagePanel.add(Box.createHorizontalStrut(650));
-//		    imagePanel.add(Box.createVerticalStrut(500));
+		    imagePanel.add(Box.createHorizontalStrut(320));
+		    imagePanel.add(Box.createVerticalStrut(300));
 		}
 
 		this.getContentPane().setLayout(new BorderLayout());
@@ -145,7 +144,7 @@ public class GUI extends JFrame {
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
-			final byte[] tempImgArray = new byte[image.length];
+			byte[] tempImgArray = new byte[image.length];
 			System.arraycopy(image, 0, tempImgArray, 0, image.length);
 			
 			SwingUtilities.invokeLater(new Runnable() {
@@ -181,20 +180,28 @@ public class GUI extends JFrame {
 	}
 }
 
+
+
 class ImagePanel extends JPanel {
 	ImageIcon icon;
 	JLabel lbDelay;
+
 
 	public ImagePanel() {
 		super();
 		icon = new ImageIcon();
 		JLabel label = new JLabel(icon);
+		lbDelay = new JLabel("Delay");
+		setLayout(new BorderLayout());
 		add(label, BorderLayout.SOUTH);
-	
+		add(new JLabel("Delay Time : "), BorderLayout.NORTH);
+		add(lbDelay, BorderLayout.NORTH);
 		this.setSize(200,200);
+
 	}
 
 	public void refresh(byte[] data, long delay) {
+		lbDelay.setText(String.valueOf(delay));
 		Image theImage = getToolkit().createImage(data);
 		getToolkit().prepareImage(theImage, -1, -1, null);
 		icon.setImage(theImage);
