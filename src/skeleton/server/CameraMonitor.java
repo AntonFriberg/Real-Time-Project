@@ -147,7 +147,6 @@ public class CameraMonitor {
         // System.out.println("copied byte for motion detected");
 
         //Merge data arrays into packet and send
-        System.out.println("Writing to OutputString");
         os.write(imgCmdPacket, 0, imgCmdPacket.length);
         os.write(imgDataPacket, 0, imgDataPacket.length);
         os.write(tsDataPacket, 0, tsDataPacket.length);

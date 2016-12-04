@@ -38,6 +38,9 @@ public class ClientReceive extends Thread {
 	}
 
 	private void getImage() throws IOException, InterruptedException {
+		/*
+		 * Method for connecting and receiving images from a camera server. 
+		*/
 		while (true) {
 			monitor.waitForConnect();
 			sock = new Socket(server, port);
@@ -86,7 +89,6 @@ public class ClientReceive extends Thread {
 	        }finally {
 			
 			}
-		//sleep(200); //IF not included an error will occur for trying connect to often
 		}
 	}
 

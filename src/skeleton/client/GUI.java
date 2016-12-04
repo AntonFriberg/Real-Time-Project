@@ -60,7 +60,7 @@ public class GUI extends JFrame {
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
-		btnConnect.addActionListener(new ButtonConnectHandler(this, ClientMonitor.CONNECT));
+		btnConnect.addActionListener(new ButtonHandler(this, ClientMonitor.CONNECT));
 		btnShowAsynch = new JButton("Synchronous/Asynchronous");
 		btnShowAsynch.addActionListener(event -> {
 			monitor.changeSynchronousMode();
@@ -244,23 +244,10 @@ class CheckBoxHandler implements ActionListener {
 	}
 }
 
-class ButtonConnectHandler implements ActionListener {
-	GUI gui;
-	private int command;
-
-	public ButtonConnectHandler(GUI gui, int command) {
-		this.command = command;
-		this.gui = gui;
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		gui.sendCommand(command);
-	}
-}
-
 class ButtonHandler implements ActionListener {
-
+	/*
+	 * Handles connection button press
+	*/
 	GUI gui;
 	private int command;
 
