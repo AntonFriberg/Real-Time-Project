@@ -46,7 +46,7 @@ public class ClientSend extends Thread {
 			System.out.println("Client sending at " + port);
 	
 			while (sock.isConnected()) {
-				int newCommand = monitor.getCommand();
+				int newCommand = monitor.getCommand(cameraID);
 				System.out.println("Sending + : ");
 				if (newCommand == ClientMonitor.IDLE_MODE) {
 					System.out.println(MOTION_OFF);
