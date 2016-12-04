@@ -7,180 +7,175 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
- * Monitor object that provide the synchronized methods.
+ * Created by Anton Friberg and Joakim Magnusson on 11/15/16. Monitor object
+ * that provide the synchronized methods.
  */
 public class CameraMonitor {
-    /**
-     * Keeps hold of the latest produced images, timestamps and current modes. Contains
-     * thread safe methods for each of the necessary interactions on the contained data.
-     */
-    // The camera location
-    private static String PROXY = "argus-1.student.lth.se";
-    private static long IDLE_FRAMERATE = 5000;
-    private static long MOTION_FRAMERATE = 40;
-    private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
-    private static final byte[] CRLF = "\r\n".getBytes();
+	/**
+	 * Keeps hold of the latest produced images, timestamps and current modes.
+	 * Contains thread safe methods for each of the necessary interactions on
+	 * the contained data.
+	 */
+	// The camera location
+	private static String PROXY = "argus-1.student.lth.se";
+	private static long IDLE_FRAMERATE = 5000;
+	private static long MOTION_FRAMERATE = 40;
+	private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
+	private static final byte[] CRLF = "\r\n".getBytes();
 
-    long frameRate = IDLE_FRAMERATE;
-    private byte[] imageBox; // The box we keep the latest image in
-    private byte[] timeStampBox; // The box we keep the latest timestamp
-    private byte[] motionDetectBox;
-    private boolean motionDetect = false; // false means idle
-    private AxisM3006V cam;
-    private boolean connected = false;
-    private int count;
-    private static int MOTION_DETECTED_DELAY = 10;
-    private boolean auto = true;
-    /**
-     * Creates camera object and initializes arrays,
-     * tries to connect to camera.
-     *
-     * @param port
-     * camera port
-     */
-    public CameraMonitor(int port) {
-        cam = new AxisM3006V();
-        cam.init();
-        cam.setProxy(PROXY, port);
-        imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
-        timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
-        if (!cam.connect()) {
-            System.out.println("Failed to connect to camera!");
-            System.exit(1);
-        }
-        System.out.println("Connected to camera: " + PROXY);
-    }
+	long frameRate = IDLE_FRAMERATE;
+	private byte[] imageBox; // The box we keep the latest image in
+	private byte[] timeStampBox; // The box we keep the latest timestamp
+	private byte[] motionDetectBox;
+	private boolean motionDetect = false; // false means idle
+	private AxisM3006V cam;
+	private boolean connected = false;
+	private int count;
+	private static int MOTION_DETECTED_DELAY = 10;
+	private boolean auto = true;
 
-    /**
-     * Synchronized method that switches camera mode.
-     *
-     * @param motionDetect
-     * true: activate motion mode
-     * false: activate idle mode
-     */
-    public synchronized void activateMotion(boolean motionDetect) {
-        this.motionDetect = motionDetect;
-        frameRate = (motionDetect) ? MOTION_FRAMERATE: IDLE_FRAMERATE;
-    }
+	/**
+	 * Creates camera object and initializes arrays, tries to connect to camera.
+	 *
+	 * @param port
+	 *            camera port
+	 */
+	public CameraMonitor(int port) {
+		cam = new AxisM3006V();
+		cam.init();
+		cam.setProxy(PROXY, port);
+		imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
+		timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
+		if (!cam.connect()) {
+			System.out.println("Failed to connect to camera!");
+			System.exit(1);
+		}
+		System.out.println("Connected to camera: " + PROXY);
+	}
 
-    /**
-     * Used by CameraHandler
-     *
-     * Takes an image with the initialized camera then waits specified
-     * time before taking the next.
-     */
-    public synchronized void takeImage() {
-        //cam.getJPEG(imageBox, 0); // put image in imageBox
-        //cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
-        //cam.close();
-        //notifyAll();
-        long timestamp = System.currentTimeMillis();
-        while (System.currentTimeMillis() < timestamp + frameRate) {
-            cam.getJPEG(imageBox, 0);
-            // Motion detected needs an image to detect motion
-            if (auto && cam.motionDetected()) activateMotion(true);
-            try {
-                //System.out.println("Waiting to take picture.");
-                wait(MOTION_FRAMERATE);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        cam.getTime(timeStampBox, 0);
-        notifyAll();
-    }
+	/**
+	 * Synchronized method that switches camera mode.
+	 *
+	 * @param motionDetect
+	 *            true: activate motion mode false: activate idle mode
+	 */
+	public synchronized void activateMotion(boolean motionDetect) {
+		this.motionDetect = motionDetect;
+		frameRate = (motionDetect) ? MOTION_FRAMERATE : IDLE_FRAMERATE;
+	}
 
-    /**
-     * Synchronized method that sends the last captured image
-     * over the network via the provided OutPutStream.
-     *
-     * The sent data is constructed in the following order:
-     * ["IMG " + JPEG + TimeStamp + Mode]
-     * @param os
-     * OutputStream provided by the network socket.
-     * @throws IOException
-     */
-    public synchronized void sendImage(OutputStream os) throws IOException {
-        if (auto) {
-        	byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
-        	motionDetectBox = new byte[1];
-        	motionDetectBox[0] = mode;
-        } else {
-        	byte mode = (byte) 0;
-        	motionDetectBox = new byte[1];
-        	motionDetectBox[0] = mode;
-        }
-        //System.out.println(auto + " mode");
-        
-        byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
-        byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
-        byte[] tsDataPacket = new byte[timeStampBox.length + CRLF.length];
-        byte[] motionDetectPacket = new byte[motionDetectBox.length + CRLF.length];
-        //System.out.println("Constructed byte arrays");
+	/**
+	 * Used by CameraHandler
+	 *
+	 * Takes an image with the initialized camera then waits specified time
+	 * before taking the next.
+	 */
+	public synchronized void takeImage() {
+		// cam.getJPEG(imageBox, 0); // put image in imageBox
+		// cam.getTime(timeStampBox, 0); // put timestamp in timeStampBox
+		// cam.close();
+		// notifyAll();
+		long timestamp = System.currentTimeMillis();
+		while (System.currentTimeMillis() < timestamp + frameRate) {
+			cam.getJPEG(imageBox, 0);
+			// Motion detected needs an image to detect motion
+			if (auto && cam.motionDetected())
+				activateMotion(true);
+			try {
+				// System.out.println("Waiting to take picture.");
+				wait(MOTION_FRAMERATE);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		cam.getTime(timeStampBox, 0);
+		notifyAll();
+	}
 
+	/**
+	 * Synchronized method that sends the last captured image over the network
+	 * via the provided OutPutStream.
+	 *
+	 * The sent data is constructed in the following order: ["IMG " + JPEG +
+	 * TimeStamp + Mode]
+	 * 
+	 * @param os
+	 *            OutputStream provided by the network socket.
+	 * @throws IOException
+	 */
+	public synchronized void sendImage(OutputStream os) throws IOException {
 
-        // Put "IMG " + CRLF in image command packet
-        System.arraycopy(SEND_IMAGE_CMD, 0, imgCmdPacket, 0, SEND_IMAGE_CMD.length);
-        System.arraycopy(CRLF, 0, imgCmdPacket, SEND_IMAGE_CMD.length, CRLF.length);
-        //System.out.println("copied command");
+		byte mode = (motionDetect) ? (byte) 1 : (byte) 0;
+		motionDetectBox = new byte[1];
+		motionDetectBox[0] = mode;
 
-        // Wait until notified by takeImage
-        try {
-            wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+		byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
+		byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
+		byte[] tsDataPacket = new byte[timeStampBox.length + CRLF.length];
+		byte[] motionDetectPacket = new byte[motionDetectBox.length + CRLF.length];
+		// System.out.println("Constructed byte arrays");
 
-        System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
-        System.arraycopy(CRLF, 0, imgDataPacket, imageBox.length, CRLF.length);
-        // System.out.println("copied image data");
+		// Put "IMG " + CRLF in image command packet
+		System.arraycopy(SEND_IMAGE_CMD, 0, imgCmdPacket, 0, SEND_IMAGE_CMD.length);
+		System.arraycopy(CRLF, 0, imgCmdPacket, SEND_IMAGE_CMD.length, CRLF.length);
+		// System.out.println("copied command");
 
-        // Put timestamp data and CRLF in timestamp data packet
-        System.arraycopy(timeStampBox, 0, tsDataPacket, 0, timeStampBox.length);
-        System.arraycopy(CRLF, 0, tsDataPacket, timeStampBox.length, CRLF.length);
-        // System.out.println("copied image timestamp");
+		// Wait until notified by takeImage
+		try {
+			wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
-        //Put motionDetect data and CRLF in motionDetect data packet
-        System.arraycopy(motionDetectBox, 0, motionDetectPacket, 0, motionDetectBox.length);
-        System.arraycopy(CRLF, 0, motionDetectPacket, motionDetectBox.length, CRLF.length);
-        // System.out.println("copied byte for motion detected");
+		System.arraycopy(imageBox, 0, imgDataPacket, 0, imageBox.length);
+		System.arraycopy(CRLF, 0, imgDataPacket, imageBox.length, CRLF.length);
+		// System.out.println("copied image data");
 
-        //Merge data arrays into packet and send
-        System.out.println("Writing to OutputString");
-        os.write(imgCmdPacket, 0, imgCmdPacket.length);
-        os.write(imgDataPacket, 0, imgDataPacket.length);
-        os.write(tsDataPacket, 0, tsDataPacket.length);
-        os.write(motionDetectPacket, 0, motionDetectPacket.length);
-        //notifyAll();
-    }
+		// Put timestamp data and CRLF in timestamp data packet
+		System.arraycopy(timeStampBox, 0, tsDataPacket, 0, timeStampBox.length);
+		System.arraycopy(CRLF, 0, tsDataPacket, timeStampBox.length, CRLF.length);
+		// System.out.println("copied image timestamp");
 
-    /**
-     * Tells monitor that a client has connected
-     */
-    public synchronized void connect() {
-        connected = true;
-    }
+		// Put motionDetect data and CRLF in motionDetect data packet
+		System.arraycopy(motionDetectBox, 0, motionDetectPacket, 0, motionDetectBox.length);
+		System.arraycopy(CRLF, 0, motionDetectPacket, motionDetectBox.length, CRLF.length);
+		// System.out.println("copied byte for motion detected");
 
-    /**
-     * Tells the monitor to disconnect the client
-     */
-    public synchronized void disconnect() {
-    	connected = false;
-    }
+		// Merge data arrays into packet and send
+		System.out.println("Writing to OutputString");
+		os.write(imgCmdPacket, 0, imgCmdPacket.length);
+		os.write(imgDataPacket, 0, imgDataPacket.length);
+		os.write(tsDataPacket, 0, tsDataPacket.length);
+		os.write(motionDetectPacket, 0, motionDetectPacket.length);
+		// notifyAll();
+	}
 
-    /**
-     * Returns the state of the current connection
-     * @return
-     * True: Client is connected
-     * False: Client is or is in the process of disconnecting
-     */
-    public synchronized boolean connected() {
-    	return connected;
-    }
-    
-    public synchronized void setAuto(boolean auto) {
-    	this.auto = auto;
-    }
+	/**
+	 * Tells monitor that a client has connected
+	 */
+	public synchronized void connect() {
+		connected = true;
+	}
+
+	/**
+	 * Tells the monitor to disconnect the client
+	 */
+	public synchronized void disconnect() {
+		connected = false;
+	}
+
+	/**
+	 * Returns the state of the current connection
+	 * 
+	 * @return True: Client is connected False: Client is or is in the process
+	 *         of disconnecting
+	 */
+	public synchronized boolean connected() {
+		return connected;
+	}
+
+	public synchronized void setAuto(boolean auto) {
+		this.auto = auto;
+	}
 
 }

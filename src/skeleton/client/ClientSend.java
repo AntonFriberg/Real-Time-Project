@@ -17,8 +17,8 @@ public class ClientSend extends Thread {
 	public static final String MOTION_OFF = "CMI ";
 	public static final String MOTION_ON = "CMM ";
 	public static final String DISCONNECT = "DSC ";
-	public static final String AUTOMAGICALLY = "AUT ";
-	public static final String MANUAGICALLY = "MAN ";
+	public static final String AUTO_MODE = "AUT ";
+	public static final String MANUAL_MODE = "MAN ";
 	private	int cameraID;
 	
 	public ClientSend(String server, int port, ClientMonitor monitor, int cameraID) {
@@ -48,25 +48,25 @@ public class ClientSend extends Thread {
 			while (sock.isConnected()) {
 				int newCommand = monitor.getCommand(cameraID);
 				System.out.println("Sending + : ");
-				if (newCommand == ClientMonitor.IDLE_MODE) {
+				if (newCommand == ClientMonitor.MOTION_OFF) {
 					System.out.println(MOTION_OFF);
 					putLine(os, MOTION_OFF); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
-				} else if (newCommand == ClientMonitor.MOVIE_MODE) {
+				} else if (newCommand == ClientMonitor.MOTION_ON) {
 					System.out.println(MOTION_ON);
 					putLine(os, MOTION_ON); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
-				} else if (newCommand == ClientMonitor.IDLE_MODE){
-					System.out.println(MOTION_OFF);
+				} else if (newCommand == ClientMonitor.DISCONNECT){
+					System.out.println(DISCONNECT);
 					putLine(os, DISCONNECT); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				} else if (newCommand == ClientMonitor.AUTO_MODE){
-					System.out.println(AUTOMAGICALLY);
-					putLine(os, AUTOMAGICALLY); // Start the transmission of pictures
+					System.out.println(AUTO_MODE);
+					putLine(os, AUTO_MODE); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				} else {
-					System.out.println(MANUAGICALLY);
-					putLine(os, MANUAGICALLY); // Start the transmission of pictures
+					System.out.println(MANUAL_MODE);
+					putLine(os, MANUAL_MODE); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				}
 				os.flush();

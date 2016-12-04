@@ -17,7 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import javax.swing.JPanel;
-
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 
 public class GUI extends JFrame {
@@ -51,15 +52,15 @@ public class GUI extends JFrame {
 		// this.setTitle("Operating at port : " + port);
 		// The buttons are created
 		btnMotionON = new JButton("Motion On" + "");
-		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
+		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOTION_ON));
 		btnMotionOFF = new JButton("Motion Off");
-		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
+		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.MOTION_OFF));
 		btnAuto = new JCheckBox("Auto", true);
 		btnAuto.addActionListener(new CheckBoxHandler(btnAuto, this));
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ButtonHandler(this, ClientMonitor.DISCONNECT));
 		btnConnect = new JButton("Connect");
-		btnConnect.addActionListener(new ButtonConnectHandler(this, ClientMonitor.CONNECT));
+		btnConnect.addActionListener(new ButtonHandler(this, ClientMonitor.CONNECT));
 		btnShowAsynch = new JButton("Synchronous/Asynchronous");
 		btnShowAsynch.addActionListener(event -> {
 			monitor.changeSynchronousMode();
@@ -83,9 +84,9 @@ public class GUI extends JFrame {
 		JPanel labelPane = new JPanel();
 		labelPane.setLayout(new BoxLayout(labelPane, BoxLayout.LINE_AXIS));
 		labelPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Motion : "));
 		labelPane.add(lbMode);
+		labelPane.add(Box.createHorizontalGlue());
 		labelPane.add(new JLabel("Synchronous : "));
 		labelPane.add(lbSynch);
 
@@ -96,12 +97,14 @@ public class GUI extends JFrame {
 //		    cameraPanel.add(Box.createHorizontalStrut(320));
 //		    cameraPanel.add(Box.createVerticalStrut(300));
 		}
-
+	
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(cameraPanelGroup, BorderLayout.CENTER);
 		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
+		
+		
 		this.pack();
 //		this.setVisible(true);
 
@@ -115,6 +118,14 @@ public class GUI extends JFrame {
 			lbMode.setText("OFF");
 		} else {
 			lbMode.setText("ON");
+		}
+	}
+	
+	public void setSynchIndicator(boolean synch){
+		if(synch){
+			lbSynch.setText("ON");
+		} else {
+			lbSynch.setText("OFF");
 		}
 	}
 	
@@ -140,7 +151,6 @@ public class GUI extends JFrame {
 			}
 			
 			CameraPanel tempPanel = cameraPanelList.get(cameraID);
-			
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array
@@ -242,23 +252,10 @@ class CheckBoxHandler implements ActionListener {
 	}
 }
 
-class ButtonConnectHandler implements ActionListener {
-	GUI gui;
-	private int command;
-
-	public ButtonConnectHandler(GUI gui, int command) {
-		this.command = command;
-		this.gui = gui;
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		gui.sendCommand(command);
-	}
-}
-
 class ButtonHandler implements ActionListener {
-
+	/*
+	 * Handles connection button press
+	*/
 	GUI gui;
 	private int command;
 

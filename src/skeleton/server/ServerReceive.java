@@ -75,7 +75,7 @@ public class ServerReceive extends Thread {
 				    	cont = !(header.equals(""));
 				    } while (cont);
 
-				    System.out.println("HTTP request '" + request + "' received by ServerReceive.");
+				    System.out.println("HTTP request '" + request);
 
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
