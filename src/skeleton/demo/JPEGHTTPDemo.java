@@ -1,8 +1,8 @@
 package skeleton.demo;
 
-import skeleton.server.CameraMonitor;
+import skeleton.server.common.CameraMonitor;
 import skeleton.server.JPEGHTTPServer;
-import skeleton.server.ServerSend;
+import skeleton.server.common.ServerSend;
 import skeleton.client.CameraController;
 //import skeleton.client.JPEGHTTPClient;
 //import skeleton.client.CameraInterface;

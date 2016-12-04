@@ -1,4 +1,6 @@
-package skeleton.server;
+package skeleton.server.common;
+
+import skeleton.server.common.CameraMonitor;
 
 import java.io.IOException;
 import java.io.InputStream;
