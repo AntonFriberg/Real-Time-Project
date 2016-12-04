@@ -25,7 +25,9 @@ public class ClientMonitor {
 										// are to be displayed
 	private HashMap<Integer, Boolean> cmdMap; // Stores which cameras that have
 												// sent the commands
+	
 	private int numberOfCameras;
+	private boolean autoMode = true;
 	private boolean showAsynchronous = true;
 	private int command;
 	private int prevMotion = MOTION_OFF;
@@ -63,7 +65,7 @@ public class ClientMonitor {
 			cam.setTimeStamp(convertTime(timeStamp));
 			if (motionDetect == MOTION_ON) {
 				cam.setMotionDetect(true);
-				if (prevMotion == MOTION_OFF) {
+				if (autoMode &&prevMotion == MOTION_OFF) {
 					setCommand(MOTION_ON);
 					prevMotion = MOTION_ON;
 				}
@@ -202,6 +204,10 @@ public class ClientMonitor {
 		case MOTION_ON:
 			prevMotion = MOTION_ON;
 			break;
+		case AUTO_MODE:
+			autoMode = true;
+		case MANUAL_MODE:
+			autoMode = false;
 		}
 		setCommandAvailable();
 		command = newCommand;
