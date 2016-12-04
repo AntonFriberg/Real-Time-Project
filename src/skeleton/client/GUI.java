@@ -17,7 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import javax.swing.JPanel;
-
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 
 public class GUI extends JFrame {
@@ -51,9 +52,9 @@ public class GUI extends JFrame {
 		// this.setTitle("Operating at port : " + port);
 		// The buttons are created
 		btnMotionON = new JButton("Motion On" + "");
-		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOVIE_MODE));
+		btnMotionON.addActionListener(new ButtonHandler(this, ClientMonitor.MOTION_ON));
 		btnMotionOFF = new JButton("Motion Off");
-		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.IDLE_MODE));
+		btnMotionOFF.addActionListener(new ButtonHandler(this, ClientMonitor.MOTION_OFF));
 		btnAuto = new JCheckBox("Auto", true);
 		btnAuto.addActionListener(new CheckBoxHandler(btnAuto, this));
 		btnDisconnect = new JButton("Disconnect");
@@ -96,12 +97,14 @@ public class GUI extends JFrame {
 //		    cameraPanel.add(Box.createHorizontalStrut(320));
 //		    cameraPanel.add(Box.createVerticalStrut(300));
 		}
-
+	
 		this.getContentPane().setLayout(new BorderLayout());
 		this.getContentPane().add(cameraPanelGroup, BorderLayout.CENTER);
 		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
+		
+		
 		this.pack();
 //		this.setVisible(true);
 
@@ -140,7 +143,6 @@ public class GUI extends JFrame {
 			}
 			
 			CameraPanel tempPanel = cameraPanelList.get(cameraID);
-			
 			// In order to prevent swing from trying to display a corrupt
 			// image
 			// the image is stored in a temporary array

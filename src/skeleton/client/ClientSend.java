@@ -48,16 +48,16 @@ public class ClientSend extends Thread {
 			while (sock.isConnected()) {
 				int newCommand = monitor.getCommand(cameraID);
 				System.out.println("Sending + : ");
-				if (newCommand == ClientMonitor.IDLE_MODE) {
+				if (newCommand == ClientMonitor.MOTION_OFF) {
 					System.out.println(MOTION_OFF);
 					putLine(os, MOTION_OFF); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
-				} else if (newCommand == ClientMonitor.MOVIE_MODE) {
+				} else if (newCommand == ClientMonitor.MOTION_ON) {
 					System.out.println(MOTION_ON);
 					putLine(os, MOTION_ON); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
-				} else if (newCommand == ClientMonitor.IDLE_MODE){
-					System.out.println(MOTION_OFF);
+				} else if (newCommand == ClientMonitor.DISCONNECT){
+					System.out.println(DISCONNECT);
 					putLine(os, DISCONNECT); // Start the transmission of pictures
 					putLine(os, ""); // The request ends with an empty line
 				} else if (newCommand == ClientMonitor.AUTO_MODE){

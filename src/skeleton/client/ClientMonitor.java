@@ -10,35 +10,31 @@ import java.util.Queue;
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
 public class ClientMonitor {
-	// private byte[] imgBuffer;
-	// private byte[] timeStampBuffer;
-	// private byte[] motionDetectBuffer;
-	//
 
-	private Queue<Camera> cameraQueue;
-	public static final int IDLE_MODE = 0;
-	public static final int MOVIE_MODE = 1;
+	public static final int MOTION_OFF = 0;
+	public static final int MOTION_ON = 1;
 	public static final int DISCONNECT = 2;
-	
 	public static final int CONNECT = 3;
 	public static final int AUTO_MODE = 4;
 	public static final int MANUAL_MODE = 5;
-	
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 20; // 200 milliseconds
 
-	HashMap<Integer, Boolean> cmdMap;
+	private Queue<Camera> cameraQueue; // A temporary storage for cameras which
+										// are to be displayed
+	private HashMap<Integer, Boolean> cmdMap; // Stores which cameras that have
+												// sent the commands
 	private int numberOfCameras;
 	private boolean showAsynchronous = true;
-	private boolean hasCommand = false;
 	private int command;
-	
+	private int prevMotion = MOTION_OFF;
 	private boolean receiveShouldDisconnect = false;
 
 	public ClientMonitor(int numberOfCameras) {
+
 		cmdMap = new HashMap<Integer, Boolean>();
-		for(int i = 0; i < numberOfCameras; i++){
+		for (int i = 0; i < numberOfCameras; i++) {
 			cmdMap.put(i, false);
 		}
 		this.numberOfCameras = numberOfCameras;
@@ -60,14 +56,20 @@ public class ClientMonitor {
 	 */
 	public synchronized void putImage(byte[] image, byte[] timeStamp, byte motionDetect, int cameraID)
 			throws InterruptedException {
-		if (!isInQueue(cameraID)) {
-			Camera cam = new Camera(cameraID);
+		if (!isInQueue(cameraID)) { // Should only post one image per gui
+									// refresh cycle
+			Camera cam = new Camera(cameraID); // Temporary Camerastorage
 			System.arraycopy(image, 0, cam.getJpeg(), 0, image.length);
 			cam.setTimeStamp(convertTime(timeStamp));
-			if (motionDetect == IDLE_MODE) {
-				cam.setMotionDetect(false);
-			} else {
+			if (motionDetect == MOTION_ON) {
 				cam.setMotionDetect(true);
+				if (prevMotion == MOTION_OFF) {
+					setCommand(MOTION_ON);
+					prevMotion = MOTION_ON;
+				}
+			} else {
+				cam.setMotionDetect(false);
+
 			}
 			cameraQueue.offer(cam);
 			System.out.println("Put");
@@ -85,7 +87,12 @@ public class ClientMonitor {
 		return false;
 	}
 
-	public synchronized void getAll(Queue<Camera> fetchQueue) throws InterruptedException{
+	/**
+	 * 
+	 * @param fetchQueue
+	 * @throws InterruptedException
+	 */
+	public synchronized void getAll(Queue<Camera> fetchQueue) throws InterruptedException {
 		while (cameraQueue.size() < numberOfCameras) {
 			wait();
 		}
@@ -94,29 +101,32 @@ public class ClientMonitor {
 		}
 		System.out.println("Fetched All");
 	}
-	
+
 	/**
+	 * changes the mode of asynchronous displaying
 	 * 
 	 * @param showAsynchronous
 	 */
-	public synchronized void changeSynchronousMode(){
+	public synchronized void changeSynchronousMode() {
 		showAsynchronous = !showAsynchronous;
 	}
-	
+
 	/**
+	 * Tells a displayer of images whether the images should be displayed
+	 * asynchronously
 	 * 
 	 * @return
 	 */
-	public synchronized boolean setShowAsynchronous(){
-		return showAsynchronous = true;
+	public synchronized boolean showAsynchronous() {
+		return showAsynchronous == true;
 	}
-	
+
 	/**
 	 * 
 	 * @param fetchQueue
 	 * @throws InterruptedException
 	 */
-	public synchronized boolean getImage(Queue<Camera> fetchQueue) throws InterruptedException {
+	public synchronized void getImage(Queue<Camera> fetchQueue) throws InterruptedException {
 		while (cameraQueue.size() == 0) {
 			wait();
 		}
@@ -133,7 +143,6 @@ public class ClientMonitor {
 			fetchQueue.add(cameraQueue.poll());
 		}
 		System.out.println("Fetch");
-		return synchronous;
 	}
 
 	private long convertTime(byte[] timeArray) {
@@ -155,16 +164,17 @@ public class ClientMonitor {
 		while (!camHasCommand(cameraID))
 			wait();
 		notifyAll();
-		return command;	
+		return command;
 	}
-	
-	private void setCommandAvailable(){
-		for(Entry<Integer, Boolean> entry : cmdMap.entrySet()){
+
+	private void setCommandAvailable() {
+		for (Entry<Integer, Boolean> entry : cmdMap.entrySet()) {
 			entry.setValue(true);
 		}
 	}
-	private boolean camHasCommand(int cameraID){
-		if(cmdMap.containsKey(cameraID)){
+
+	private boolean camHasCommand(int cameraID) {
+		if (cmdMap.containsKey(cameraID)) {
 			return cmdMap.replace(cameraID, false);
 		}
 		return false;
@@ -179,10 +189,19 @@ public class ClientMonitor {
 	 * @throws InterruptedException
 	 */
 	public synchronized void setCommand(int newCommand) throws InterruptedException {
-		if (newCommand == ClientMonitor.DISCONNECT) {
+		switch (newCommand) {
+		case DISCONNECT:
 			setDisconnect();
-		} else if(newCommand == ClientMonitor.CONNECT) {
+			break;
+		case CONNECT:
 			setConnect();
+			break;
+		case MOTION_OFF:
+			prevMotion = MOTION_OFF;
+			break;
+		case MOTION_ON:
+			prevMotion = MOTION_ON;
+			break;
 		}
 		setCommandAvailable();
 		command = newCommand;
@@ -193,10 +212,11 @@ public class ClientMonitor {
 	private void setDisconnect() {
 		receiveShouldDisconnect = true;
 	}
-	
+
 	private void setConnect() {
 		receiveShouldDisconnect = false;
 	}
+
 	/**
 	 * Notifies the recieving thread that it should cancel receiving images
 	 * 
@@ -205,11 +225,10 @@ public class ClientMonitor {
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
-	
-	public synchronized void waitForConnect() throws InterruptedException{
-		while(receiveShouldDisconnect)
+
+	public synchronized void waitForConnect() throws InterruptedException {
+		while (receiveShouldDisconnect)
 			wait();
 	}
-	
 
 }
