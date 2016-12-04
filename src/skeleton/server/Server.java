@@ -20,13 +20,6 @@ public class Server {
         send.start();
         receive.start();
         ch.start();
-        try {
-            send.join();
-            receive.join();
-            ch.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(String[] args) {
