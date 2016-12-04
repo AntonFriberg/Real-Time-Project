@@ -14,6 +14,7 @@ public class CameraMonitor {
      * Keeps hold of the latest produced images, timestamps and current modes. Contains
      * thread safe methods for each of the necessary interactions on the contained data.
      */
+    private static String PROXY = "argus-1.student.lth.se";
     private static long IDLE_FRAMERATE = 5000;
     private static long MOTION_FRAMERATE = 40;
     private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
@@ -39,15 +40,14 @@ public class CameraMonitor {
     public CameraMonitor(int port) {
         cam = new AxisM3006V();
         cam.init();
-        cam.setProxy("argus-1.student.lth.se", port);
+        cam.setProxy(PROXY, port);
         imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
         timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
-        System.out.println("Trying to connect to camera");
         if (!cam.connect()) {
             System.out.println("Failed to connect to camera!");
             System.exit(1);
         }
-        System.out.println("Connected to camera");
+        System.out.println("Connected to camera: " + PROXY);
     }
 
     /**
@@ -109,7 +109,7 @@ public class CameraMonitor {
         	motionDetectBox = new byte[1];
         	motionDetectBox[0] = mode;
         }
-        System.out.println(auto + "mode");
+        //System.out.println(auto + " mode");
         
         byte[] imgCmdPacket = new byte[SEND_IMAGE_CMD.length + CRLF.length];
         byte[] imgDataPacket = new byte[imageBox.length + CRLF.length];
@@ -145,6 +145,7 @@ public class CameraMonitor {
         // System.out.println("copied byte for motion detected");
 
         //Merge data arrays into packet and send
+        System.out.println("Writing to OutputString");
         os.write(imgCmdPacket, 0, imgCmdPacket.length);
         os.write(imgDataPacket, 0, imgDataPacket.length);
         os.write(tsDataPacket, 0, tsDataPacket.length);
@@ -179,8 +180,5 @@ public class CameraMonitor {
     public synchronized void setAuto(boolean auto) {
     	this.auto = auto;
     }
-    
-    public synchronized boolean getAuto() {
-    	return auto;
-    }
+
 }

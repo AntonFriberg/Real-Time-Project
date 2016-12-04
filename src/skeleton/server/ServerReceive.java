@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
@@ -38,7 +39,7 @@ public class ServerReceive extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("HTTP receiving server operating at port " + port + ".");
+		System.out.println("HTTP receiving server operating at port: " + port + ".");
 
 		while (true) {
 			try {
@@ -73,7 +74,7 @@ public class ServerReceive extends Thread {
 				    	cont = !(header.equals(""));
 				    } while (cont);
 
-				    System.out.println("HTTP request '" + request + "' received.");
+				    System.out.println("HTTP request '" + request + "' received by ServerReceive.");
 
                     // Interpret the request. Complain about everything but GET.
                     // Ignore the file name.
@@ -90,7 +91,7 @@ public class ServerReceive extends Thread {
                         // rate to idle.
                     	System.out.println("IDLE ACTIVATE");
                         cm.activateMotion(false);
-                    } else if (request.substring(0, 4).equals(DISCONNECT)){ // servern ska aldrig köra disconect!!!!
+                    } else if (request.substring(0, 4).equals(DISCONNECT)){ // servern ska aldrig kï¿½ra disconect!!!!
                         // Got a DSC request (Disconnect)
                         // respond by propagating the closure
                         // of sockets via the monitor
@@ -121,9 +122,13 @@ public class ServerReceive extends Thread {
                 }
 				os.flush(); // Flush any remaining content
 				receiveSocket.close(); // Disconnect from the client
-			} catch (IOException e) {
+			} catch (SocketException e) {
 				System.out.println("Caught exception " + e);
-			}
+			} catch (IOException e) {
+                System.out.println("Caught exception " + e);
+            } catch (StringIndexOutOfBoundsException e) {
+                System.out.println("Received strange request, recovering");
+            }
 		}
 	}
 
