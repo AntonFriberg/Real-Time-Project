@@ -1,6 +1,7 @@
 package skeleton.client;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -12,23 +13,27 @@ public class GuiController extends Thread {
 	private Queue<Camera> cameraQueue;
 	private GUI gui;
 
-	public GuiController() {
-		numberOfCameras = 2;
-		monitor = new ClientMonitor(2);
-
-		this.gui = new GUI(monitor, 2);
+	public GuiController(ArrayList<String> recPorts, ArrayList<String> sendPorts) {
+		numberOfCameras = recPorts.size();
+		for (int i = 0; i < numberOfCameras; i++) {
+			try {
+				int recPort = Integer.parseInt(recPorts.get(i));
+				int sendPort = Integer.parseInt(sendPorts.get(i));
+				new ClientReceive("localhost", recPort, monitor, 0).start();
+				new ClientSend("localhost", sendPort, monitor, 0).start();
+			} catch (NumberFormatException e) {
+				numberOfCameras--; //This is not a port
+			}
+		}
+		
+		monitor = new ClientMonitor(numberOfCameras);
+		this.gui = new GUI(monitor, numberOfCameras);
 		cameraQueue = new PriorityQueue<Camera>(numberOfCameras, new Comparator<Camera>() {
 			@Override
 			public int compare(Camera c1, Camera c2) {
 				return (int) (c1.getTimeStamp() - c2.getTimeStamp());
 			}
 		});
-
-		new ClientReceive("localhost", 6077, monitor, 0).start();
-		new ClientSend("localhost", 6078, monitor, 0).start();
-
-		new ClientReceive("localhost", 6080, monitor, 1).start();
-		new ClientSend("localhost", 6081, monitor, 1).start();
 	}
 
 	public void run() {
@@ -36,7 +41,7 @@ public class GuiController extends Thread {
 		boolean firstCall = true;
 		long relativeTime;
 		boolean anyHasMotion = false;
-		
+
 		while (true) {
 			try {
 				if (firstCall) { // Wait for all cameras to send images before
@@ -66,8 +71,7 @@ public class GuiController extends Thread {
 
 					if (firstCall) { // Initiate window
 						gui.firstCallInitiate();
-						gui.setMinimumSize(new Dimension(1400,600));
-						
+
 						firstCall = false;
 					}
 				}
@@ -78,9 +82,8 @@ public class GuiController extends Thread {
 				// Display the current mode of synchronous
 				gui.setSynchIndicator(synchronous);
 
-				
 				gui.displayMotionTriggerID(monitor.getTriggerID());
-					
+
 				anyHasMotion = false;
 
 				while (!cameraQueue.isEmpty()) {

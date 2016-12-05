@@ -69,9 +69,8 @@ public class ClientMonitor {
 			if (motionDetect == MOTION_ON) {
 				cam.setMotionDetect(true);
 				if (autoMode && prevMotion == MOTION_OFF) {
-					setCommand(MOTION_ON);
+					setCommand(MOTION_ON); // Send motion to all cameras
 					motionTriggerID = cameraID;
-					prevMotion = MOTION_ON;
 				}
 			} else {
 				cam.setMotionDetect(false);
