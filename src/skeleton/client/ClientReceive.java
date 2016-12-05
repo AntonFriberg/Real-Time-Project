@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
@@ -32,8 +31,7 @@ public class ClientReceive extends Thread {
 		try {
 			getImage();
 		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.exit(MAX_PRIORITY); // PORT BUSY
 		}
 	}
 
