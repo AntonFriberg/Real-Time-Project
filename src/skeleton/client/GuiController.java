@@ -13,19 +13,9 @@ public class GuiController extends Thread {
 	private Queue<Camera> cameraQueue;
 	private GUI gui;
 
+	
 	public GuiController(ArrayList<String> recPorts, ArrayList<String> sendPorts) {
 		numberOfCameras = recPorts.size();
-		for (int i = 0; i < numberOfCameras; i++) {
-			try {
-				int recPort = Integer.parseInt(recPorts.get(i));
-				int sendPort = Integer.parseInt(sendPorts.get(i));
-				new ClientReceive("localhost", recPort, monitor, 0).start();
-				new ClientSend("localhost", sendPort, monitor, 0).start();
-			} catch (NumberFormatException e) {
-				numberOfCameras--; //This is not a port
-			}
-		}
-		
 		monitor = new ClientMonitor(numberOfCameras);
 		this.gui = new GUI(monitor, numberOfCameras);
 		cameraQueue = new PriorityQueue<Camera>(numberOfCameras, new Comparator<Camera>() {
@@ -34,6 +24,18 @@ public class GuiController extends Thread {
 				return (int) (c1.getTimeStamp() - c2.getTimeStamp());
 			}
 		});
+		for (int i = 0; i < numberOfCameras; i++) {
+			try {
+				int recPort = Integer.parseInt(recPorts.get(i));
+				int sendPort = Integer.parseInt(sendPorts.get(i));
+				new ClientReceive("localhost", recPort, monitor, i).start();
+				new ClientSend("localhost", sendPort, monitor, i).start();
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
 	}
 
 	public void run() {
