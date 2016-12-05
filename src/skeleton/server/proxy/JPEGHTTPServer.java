@@ -1,4 +1,4 @@
-package skeleton.server;
+package skeleton.server.proxy;
 
 /*
  * Real-time and concurrent programming
@@ -9,10 +9,13 @@ package skeleton.server;
  * Adapted for Axis cameras by Roger Henriksson 
  */
 
-import java.net.*;                  // Provides ServerSocket, Socket
-import java.io.*;                   // Provides InputStream, OutputStream
+import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
-import se.lth.cs.eda040.fakecamera.*;      // Provides AxisM3006V
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * Itsy bitsy teeny weeny web server. Always returns an image, regardless

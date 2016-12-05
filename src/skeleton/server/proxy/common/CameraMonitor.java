@@ -1,8 +1,9 @@
-package skeleton.server.common;
+package skeleton.server.proxy.common;
 
 //import se.lth.cs.eda040.fakecamera.AxisM3006V;
-//import se.lth.cs.eda040.proxycamera.AxisM3006V;
-import se.lth.cs.eda040.realcamera.AxisM3006V;
+import se.lth.cs.eda040.proxycamera.AxisM3006V;
+//import se.lth.cs.eda040.realcamera.AxisM3006V;
+
 import java.io.IOException;
 import java.io.OutputStream;
 

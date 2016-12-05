@@ -1,9 +1,9 @@
-package skeleton.server;
+package skeleton.server.fake;
 
-import skeleton.server.common.CameraHandler;
-import skeleton.server.common.CameraMonitor;
-import skeleton.server.common.ServerReceive;
-import skeleton.server.common.ServerSend;
+import skeleton.server.fake.common.CameraMonitor;
+import skeleton.server.fake.common.ServerSend;
+import skeleton.server.fake.common.CameraHandler;
+import skeleton.server.fake.common.ServerReceive;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 04/12/16.

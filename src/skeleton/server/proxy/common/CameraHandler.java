@@ -1,4 +1,4 @@
-package skeleton.server.common;
+package skeleton.server.proxy.common;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 11/15/16.
