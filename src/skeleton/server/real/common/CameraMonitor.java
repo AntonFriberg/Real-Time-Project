@@ -1,7 +1,5 @@
 package skeleton.server.real.common;
 
-//import se.lth.cs.eda040.fakecamera.AxisM3006V;
-//import se.lth.cs.eda040.proxycamera.AxisM3006V;
 import se.lth.cs.eda040.realcamera.AxisM3006V;
 
 import java.io.IOException;
@@ -18,7 +16,6 @@ public class CameraMonitor {
 	 * the contained data.
 	 */
 	// The camera location
-	private static String PROXY = "argus-1.student.lth.se";
 	private static long IDLE_FRAMERATE = 5000;
 	private static long MOTION_FRAMERATE = 40;
 	private static final byte[] SEND_IMAGE_CMD = "IMG ".getBytes();
@@ -44,7 +41,6 @@ public class CameraMonitor {
 	public CameraMonitor(int port) {
 		cam = new AxisM3006V();
 		cam.init();
-		//cam.setProxy(PROXY, port);
 		imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 		timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 		if (!cam.connect()) {
