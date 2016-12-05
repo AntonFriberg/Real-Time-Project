@@ -1,6 +1,5 @@
 package skeleton.client;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -20,21 +19,25 @@ public class ClientMonitor {
 	public static final byte[] CRLF = { 13, 10 };
 	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 200; // 200 milliseconds
-
+	private static final int ASYNCHRONOUS_IMAGES_THRESHOLD = 10;
 	private Queue<Camera> cameraQueue; // A temporary storage for cameras which
 										// are to be displayed
 	private HashMap<Integer, Boolean> cmdMap; // Stores which cameras that have
 												// sent the commands
-	
+
 	private int numberOfCameras;
 	private boolean autoMode = true;
-	private boolean showAsynchronous = true;
+	private boolean showSynchronous = true;
 	private int command;
-	private int prevMotion = MOTION_OFF;
+	private int prevMotion = MOTION_OFF; // In order to notify when motion is
+											// detected in one camera the first
+											// time this variable is used
 	private boolean receiveShouldDisconnect = false;
+	private int motionTriggerID; // The camer which triggered the motion
+									// activate
+	private int outOfSynchCounter = 0;
 
 	public ClientMonitor(int numberOfCameras) {
-
 		cmdMap = new HashMap<Integer, Boolean>();
 		for (int i = 0; i < numberOfCameras; i++) {
 			cmdMap.put(i, false);
@@ -65,13 +68,13 @@ public class ClientMonitor {
 			cam.setTimeStamp(convertTime(timeStamp));
 			if (motionDetect == MOTION_ON) {
 				cam.setMotionDetect(true);
-				if (autoMode &&prevMotion == MOTION_OFF) {
+				if (autoMode && prevMotion == MOTION_OFF) {
 					setCommand(MOTION_ON);
+					motionTriggerID = cameraID;
 					prevMotion = MOTION_ON;
 				}
 			} else {
 				cam.setMotionDetect(false);
-
 			}
 			cameraQueue.offer(cam);
 			System.out.println("Put");
@@ -94,6 +97,51 @@ public class ClientMonitor {
 	 * @param fetchQueue
 	 * @throws InterruptedException
 	 */
+	public synchronized void getImage(Queue<Camera> fetchQueue) throws InterruptedException {
+		while (cameraQueue.size() == 0) {
+			wait();
+		}
+		// An image is received
+		long receivedTime = System.currentTimeMillis(); // Time when image was
+														// received
+		while ((System.currentTimeMillis() - receivedTime < SYNCHRONIZATION_THRESHOLD)
+				&& cameraQueue.size() < numberOfCameras) {
+			wait(100);
+		}
+
+		if (cameraQueue.size() == numberOfCameras) {
+			outOfSynchCounter = 0;
+		} else {
+			outOfSynchCounter++;
+		}
+		if (outOfSynchCounter == ASYNCHRONOUS_IMAGES_THRESHOLD) { // One frame
+																	// out of
+																	// synch is
+																	// allowed
+																	// but if
+																	// there are
+																	// more than
+																	// ASYNCHRONOUS_IMAGES_THRESHOLD
+																	// images in
+																	// succession
+																	// then
+																	// display
+																	// asynchronous
+			showSynchronous = false;
+			outOfSynchCounter = 0;
+		}
+
+		while (!this.cameraQueue.isEmpty()) {
+			fetchQueue.add(cameraQueue.poll());
+		}
+		System.out.println("Fetch");
+	}
+
+	/**
+	 * 
+	 * @param fetchQueue
+	 * @throws InterruptedException
+	 */
 	public synchronized void getAll(Queue<Camera> fetchQueue) throws InterruptedException {
 		while (cameraQueue.size() < numberOfCameras) {
 			wait();
@@ -105,46 +153,21 @@ public class ClientMonitor {
 	}
 
 	/**
-	 * changes the mode of asynchronous displaying
+	 * changes the mode of synchronous displaying
 	 * 
-	 * @param showAsynchronous
 	 */
 	public synchronized void changeSynchronousMode() {
-		showAsynchronous = !showAsynchronous;
+		showSynchronous = !showSynchronous;
 	}
 
 	/**
 	 * Tells a displayer of images whether the images should be displayed
-	 * asynchronously
+	 * synchronously
 	 * 
 	 * @return
 	 */
-	public synchronized boolean showAsynchronous() {
-		return showAsynchronous == true;
-	}
-
-	/**
-	 * 
-	 * @param fetchQueue
-	 * @throws InterruptedException
-	 */
-	public synchronized void getImage(Queue<Camera> fetchQueue) throws InterruptedException {
-		while (cameraQueue.size() == 0) {
-			wait();
-		}
-		boolean synchronous = false;
-		long receivedTime = System.currentTimeMillis();
-		while ((System.currentTimeMillis() - receivedTime < SYNCHRONIZATION_THRESHOLD)
-				&& cameraQueue.size() < numberOfCameras) {
-			wait(100);
-		}
-		if (cameraQueue.size() == numberOfCameras) {
-			synchronous = true;
-		}
-		while (!this.cameraQueue.isEmpty()) {
-			fetchQueue.add(cameraQueue.poll());
-		}
-		System.out.println("Fetch");
+	public synchronized boolean displaySynchronous() {
+		return showSynchronous == true;
 	}
 
 	private long convertTime(byte[] timeArray) {
@@ -206,8 +229,10 @@ public class ClientMonitor {
 			break;
 		case AUTO_MODE:
 			autoMode = true;
+			break;
 		case MANUAL_MODE:
 			autoMode = false;
+			break;
 		}
 		setCommandAvailable();
 		command = newCommand;
@@ -226,15 +251,25 @@ public class ClientMonitor {
 	/**
 	 * Notifies the recieving thread that it should cancel receiving images
 	 * 
-	 * @return
+	 * @return if client should disconnect
 	 */
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
 	}
 
+	/**
+	 * The disconnected sending threads wait here for new orders
+	 * 
+	 * @throws InterruptedException
+	 */
 	public synchronized void waitForConnect() throws InterruptedException {
 		while (receiveShouldDisconnect)
 			wait();
 	}
 
+	public synchronized int getTriggerID() {
+		int tempID = motionTriggerID;
+		motionTriggerID = -1;
+		return tempID;
+	}
 }
