@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import javax.swing.JOptionPane;
+
 /**
  * 
  * @author Olof Rubin and Erik Andersson
@@ -95,6 +97,8 @@ public class GuiController extends Thread {
 				}
 			} catch (Exception e) {
 				System.out.println("Could not connect to camerax");
+				JOptionPane.showMessageDialog(gui,
+					    "Could not connect to camera, check connection.");
 				System.exit(MAX_PRIORITY);
 			}
 		}
