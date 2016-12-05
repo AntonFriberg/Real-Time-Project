@@ -124,7 +124,7 @@ public class GUI extends JFrame {
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
 		this.setMinimumSize(new Dimension(1400,600));
-
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.pack();
 
 	}
