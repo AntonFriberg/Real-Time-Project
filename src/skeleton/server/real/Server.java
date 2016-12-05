@@ -1,9 +1,9 @@
 package skeleton.server.real;
 
-import common.CameraHandler;
-import common.ServerSend;
-import common.CameraMonitor;
-import common.ServerReceive;
+import skeleton.server.real.common.CameraHandler;
+import skeleton.server.real.common.ServerSend;
+import skeleton.server.real.common.CameraMonitor;
+import skeleton.server.real.common.ServerReceive;
 
 /**
  * Created by Anton Friberg and Joakim Magnusson on 04/12/16.
