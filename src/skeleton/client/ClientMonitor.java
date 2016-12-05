@@ -31,7 +31,7 @@ public class ClientMonitor {
 										// are to be displayed
 	private HashMap<Integer, Boolean> cmdMap; // Stores which cameras that have
 												// sent the commands
-
+	private int motionThreshold = 0;
 	private int numberOfCameras;
 	private boolean autoMode = true;
 	private boolean showSynchronous = true;
@@ -45,6 +45,7 @@ public class ClientMonitor {
 	private int outOfSynchCounter = 0;
 
 	public ClientMonitor(int numberOfCameras) {
+		motionThreshold = numberOfCameras;
 		cmdMap = new HashMap<Integer, Boolean>();
 		for (int i = 0; i < numberOfCameras; i++) {
 			cmdMap.put(i, false);
@@ -74,11 +75,17 @@ public class ClientMonitor {
 			Camera cam = new Camera(cameraID); // Temporary Camerastorage
 			System.arraycopy(image, 0, cam.getJpeg(), 0, image.length);
 			cam.setTimeStamp(convertTime(timeStamp));
+			System.out.println("Received Motion : "+ motionDetect);
+			
 			if (motionDetect == MOTION_ON) {
-				cam.setMotionDetect(true);
-				if (autoMode && prevMotion == MOTION_OFF) {
-					setCommand(MOTION_ON); // Send motion to all cameras
-					motionTriggerID = cameraID;
+				if(motionThreshold == numberOfCameras){
+					cam.setMotionDetect(true);
+					if (autoMode && prevMotion == MOTION_OFF) {
+						setCommand(MOTION_ON); // Send motion to all cameras
+						motionTriggerID = cameraID;
+					}					
+				} else {
+					motionThreshold++;
 				}
 			} else {
 				cam.setMotionDetect(false);
@@ -233,6 +240,7 @@ public class ClientMonitor {
 			setConnect();
 			break;
 		case MOTION_OFF:
+			motionThreshold =0;
 			prevMotion = MOTION_OFF;
 			break;
 		case MOTION_ON:
