@@ -34,6 +34,11 @@ import javax.swing.UIManager;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
+/**
+ * 
+ * @author Olof Rubin and Erik Andersson
+ *
+ */
 public class GUI extends JFrame {
 
 	private JButton btnDisconnect;
@@ -241,15 +246,6 @@ class ImagePanel extends JPanel {
 		this.setSize(320, 240);
 
 	}
-
-	// public void refresh(byte[] data) {
-	// Image theImage = getToolkit().createImage(data);
-	// getToolkit().prepareImage(theImage, -1, -1, null);
-	// icon.setImage(theImage);
-	// icon.paintIcon(this, this.getGraphics(), 5, 5);
-	// }
-	//
-	
 	
 	public void refresh(byte[] data, int numofcams, int x, int y) {
 		InputStream is = new ByteArrayInputStream(data);

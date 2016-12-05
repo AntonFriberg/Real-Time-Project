@@ -8,6 +8,11 @@ import java.util.Queue;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
+/**
+ * 
+ * @author Olof Rubin and Erik Andersson
+ *
+ */
 public class ClientMonitor {
 
 	public static final int MOTION_OFF = 0;
@@ -16,10 +21,12 @@ public class ClientMonitor {
 	public static final int CONNECT = 3;
 	public static final int AUTO_MODE = 4;
 	public static final int MANUAL_MODE = 5;
-	public static final byte[] CRLF = { 13, 10 };
-	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
 	public static final int SYNCHRONIZATION_THRESHOLD = 200; // 200 milliseconds
 	private static final int ASYNCHRONOUS_IMAGES_THRESHOLD = 10;
+	
+	public static final byte[] CRLF = { 13, 10 };
+	public static final int REC_DATA = AxisM3006V.IMAGE_BUFFER_SIZE + AxisM3006V.TIME_ARRAY_SIZE + CRLF.length * 3 + 1;
+
 	private Queue<Camera> cameraQueue; // A temporary storage for cameras which
 										// are to be displayed
 	private HashMap<Integer, Boolean> cmdMap; // Stores which cameras that have
@@ -51,6 +58,7 @@ public class ClientMonitor {
 		});
 	}
 
+	
 	/**
 	 * Stores a byte array containing an image in a buffer. Does not care
 	 * whether the last image has been displayed or not.
@@ -92,7 +100,7 @@ public class ClientMonitor {
 	}
 
 	/**
-	 * 
+	 * Waits until an image has been added to the queue of cameras.
 	 * @param fetchQueue
 	 * @throws InterruptedException
 	 */
@@ -139,11 +147,15 @@ public class ClientMonitor {
 	/**
 	 * 
 	 * @param fetchQueue
-	 * @throws InterruptedException
+	 * @throws Exception 
 	 */
-	public synchronized void getAll(Queue<Camera> fetchQueue) throws InterruptedException {
+	public synchronized void getAll(Queue<Camera> fetchQueue) throws Exception {
+		long startTime = System.currentTimeMillis();
 		while (cameraQueue.size() < numberOfCameras) {
-			wait();
+			wait(10000);
+			if(System.currentTimeMillis() - startTime > 10000){
+				throw new Exception(); //SOMETHING IS CLEARLY NOT WORKING
+			}
 		}
 		while (!this.cameraQueue.isEmpty()) {
 			fetchQueue.add(cameraQueue.poll());
@@ -163,7 +175,7 @@ public class ClientMonitor {
 	 * Tells a displayer of images whether the images should be displayed
 	 * synchronously
 	 * 
-	 * @return
+	 * @return a boolean that indicates whether images should be diplayed synchronously
 	 */
 	public synchronized boolean displaySynchronous() {
 		return showSynchronous == true;
@@ -181,7 +193,7 @@ public class ClientMonitor {
 	 * Communication between the cameraInterface and the ClientSend in order to
 	 * change from movie to idle The ClientSend waits here for the next command.
 	 * 
-	 * @return the currentMode of operation
+	 * @return an integer representing the currentMode of operation
 	 * @throws InterruptedException
 	 */
 	public synchronized int getCommand(int cameraID) throws InterruptedException {
@@ -227,6 +239,7 @@ public class ClientMonitor {
 			prevMotion = MOTION_ON;
 			break;
 		case AUTO_MODE:
+			prevMotion = MOTION_OFF;
 			autoMode = true;
 			break;
 		case MANUAL_MODE:
@@ -250,7 +263,7 @@ public class ClientMonitor {
 	/**
 	 * Notifies the recieving thread that it should cancel receiving images
 	 * 
-	 * @return if client should disconnect
+	 * @return a boolean indicating whther the client should disconnect
 	 */
 	public synchronized boolean shouldDisconnect() {
 		return receiveShouldDisconnect;
@@ -266,6 +279,10 @@ public class ClientMonitor {
 			wait();
 	}
 
+	/**
+	 * The trigger of motion is returned.
+	 * @return an integer that indicates the camera that detected motion
+	 */
 	public synchronized int getTriggerID() {
 		int tempID = motionTriggerID;
 		motionTriggerID = -1;

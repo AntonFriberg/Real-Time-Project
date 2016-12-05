@@ -7,6 +7,11 @@ import java.net.Socket;
 
 import se.lth.cs.eda040.fakecamera.AxisM3006V;
 
+/**
+ * 
+ * @author Olof Rubin and Erik Andersson
+ *
+ */
 public class ClientReceive extends Thread {
 	private Socket sock;
 	private InputStream is;

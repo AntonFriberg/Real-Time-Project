@@ -2,6 +2,7 @@ package skeleton.demo;
 
 import skeleton.client.CameraController;
 import skeleton.server.proxy.Server;
+//import skeleton.server.fake.Server;
 
 import static java.lang.Thread.sleep;
 
@@ -19,12 +20,12 @@ public class SocketTest {
         cam3.start();
         CameraController.main(new String[]{"localhost", "6077", "6080", "6090","6078", "6081", "6091"});
 
-        while (true) {
-            try {
-                sleep(10000);
-            } catch (InterruptedException e) {
-                System.exit(0);
-            }
-        }
+//        while (true) {
+//            try {
+//                sleep(10000);
+//            } catch (InterruptedException e) {
+//                System.exit(0);
+//            }
+//        }
     }
 }

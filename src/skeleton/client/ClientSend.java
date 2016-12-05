@@ -6,6 +6,11 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * 
+ * @author Olof Rubin and Erik Andersson
+ *
+ */
 public class ClientSend extends Thread {
 	private Socket sock;
 	private InputStream is;
@@ -14,6 +19,7 @@ public class ClientSend extends Thread {
 	private int port;
 	private String server;
 	private ClientMonitor monitor;
+	
 	public static final String MOTION_OFF = "CMI ";
 	public static final String MOTION_ON = "CMM ";
 	public static final String DISCONNECT = "DSC ";

@@ -1,11 +1,15 @@
 package skeleton.client;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+/**
+ * 
+ * @author Olof Rubin and Erik Andersson
+ *
+ */
 public class GuiController extends Thread {
 
 	private int numberOfCameras = 0;
@@ -13,7 +17,6 @@ public class GuiController extends Thread {
 	private Queue<Camera> cameraQueue;
 	private GUI gui;
 
-	
 	public GuiController(ArrayList<String> recPorts, ArrayList<String> sendPorts) {
 		numberOfCameras = recPorts.size();
 		monitor = new ClientMonitor(numberOfCameras);
@@ -34,8 +37,7 @@ public class GuiController extends Thread {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
 	}
 
 	public void run() {
@@ -92,8 +94,8 @@ public class GuiController extends Thread {
 					cameraQueue.poll();
 				}
 			} catch (Exception e) {
-				System.out.println("Something went wrong");
-				break;
+				System.out.println("Could not connect to camerax");
+				System.exit(MAX_PRIORITY);
 			}
 		}
 	}
