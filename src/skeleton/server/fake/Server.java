@@ -24,8 +24,8 @@ public class Server {
      * @param sendPort
      * The client's send port
      */
-    public Server(int receivePort, int sendPort) {
-        cm = new CameraMonitor(sendPort);
+    public Server(String proxy, int receivePort, int sendPort) {
+        cm = new CameraMonitor(proxy, sendPort);
         send = new ServerSend(receivePort, cm);
         receive = new ServerReceive(sendPort, cm);
         ch = new CameraHandler(cm);
@@ -55,8 +55,8 @@ public class Server {
         System.out.println("Receive port: " + args[0]);
         System.out.println("Send port: " + args[1]);
 
-        Server s = new Server((Integer.parseInt(args[0])),
-                Integer.parseInt(args[1]));
+        Server s = new Server(args[0],(Integer.parseInt(args[1])),
+                Integer.parseInt(args[2]));
         s.start();
     }
 }

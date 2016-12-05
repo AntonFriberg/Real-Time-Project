@@ -41,10 +41,10 @@ public class CameraMonitor {
 	 * @param port
 	 *            camera port
 	 */
-	public CameraMonitor(int port) {
+	public CameraMonitor(String proxy, int port) {
 		cam = new AxisM3006V();
 		cam.init();
-		//cam.setProxy(PROXY, port);
+		cam.setProxy(proxy, port);
 		imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 		timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 		if (!cam.connect()) {
