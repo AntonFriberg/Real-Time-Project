@@ -3,6 +3,7 @@ package skeleton.client;
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -117,6 +118,7 @@ public class GUI extends JFrame {
 		this.getContentPane().add(labelPane, BorderLayout.NORTH);
 		this.getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		this.setLocationRelativeTo(null);
+		this.setMinimumSize(new Dimension(1400,600));
 
 		this.pack();
 
@@ -261,7 +263,6 @@ class ImagePanel extends JPanel {
 
 			int w = bufferedImage.getWidth();
 			int h = bufferedImage.getHeight();
-		
 			int x2 = (int) x1 / numofcams;
 			int y2 = (int) x2 * h / w;
 

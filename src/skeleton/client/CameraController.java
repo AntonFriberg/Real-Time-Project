@@ -9,12 +9,15 @@ public class CameraController {
 			ArrayList<String> sendPorts = new ArrayList<String>();
 			ArrayList<String> recPorts = new ArrayList<String>();
 
-			sendPorts.add(args[3]);
 			sendPorts.add(args[4]);
+			sendPorts.add(args[5]);
+			sendPorts.add(args[6]);
+			
 			recPorts.add(args[1]);
 			recPorts.add(args[2]);
+			recPorts.add(args[3]);
 
-			GuiController camera1 = new GuiController();
+			GuiController camera1 = new GuiController(recPorts, sendPorts);
 			camera1.start();
 
 			// CameraInterface camera1 = new CameraInterface(server,

@@ -16,8 +16,8 @@ public class SocketTest {
         Server cam3 = new Server("argus-3.student.lth.se", sendPorts[2], receivePorts[2]);
         cam1.start();
         cam2.start();
-        
-        CameraController.main(new String[]{"localhost", "6077", "6080", "6078", "6081"});
+        cam3.start();
+        CameraController.main(new String[]{"localhost", "6077", "6080", "6090","6078", "6081", "6091"});
 
         while (true) {
             try {
