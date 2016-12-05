@@ -1,7 +1,8 @@
-package skeleton.server;
+package skeleton.server.proxy.common;
 
-import se.lth.cs.eda040.fakecamera.AxisM3006V;
-//import se.lth.cs.eda040.proxycamera.AxisM3006V;
+//import se.lth.cs.eda040.fakecamera.AxisM3006V;
+import se.lth.cs.eda040.proxycamera.AxisM3006V;
+//import se.lth.cs.eda040.realcamera.AxisM3006V;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,14 +44,14 @@ public class CameraMonitor {
 	public CameraMonitor(int port) {
 		cam = new AxisM3006V();
 		cam.init();
-		cam.setProxy(PROXY, port);
+		//cam.setProxy(PROXY, port);
 		imageBox = new byte[AxisM3006V.IMAGE_BUFFER_SIZE];
 		timeStampBox = new byte[AxisM3006V.TIME_ARRAY_SIZE];
 		if (!cam.connect()) {
 			System.out.println("Failed to connect to camera!");
 			System.exit(1);
 		}
-		System.out.println("Connected to camera: " + PROXY);
+		//System.out.println("Connected to camera: " + PROXY);
 	}
 
 	/**

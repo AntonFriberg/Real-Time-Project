@@ -1,4 +1,4 @@
-package skeleton.server;
+package skeleton.server.real.common;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,6 @@ public class ServerReceive extends Thread {
     private static final String DISCONNECT = "DSC ";
     private static final String AUTO_MODE = "AUT ";
     private static final String MANUAL_MODE = "MAN ";
-	private static final byte[] CRLF = { 13, 10 }; //
 	private int port;
 	private CameraMonitor cm;
 

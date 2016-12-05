@@ -1,13 +1,7 @@
 package skeleton.demo;
 
 import skeleton.client.CameraController;
-import skeleton.client.ClientMonitor;
-import skeleton.client.ClientReceive;
-import skeleton.server.CameraHandler;
-import skeleton.server.CameraMonitor;
-import skeleton.server.ServerReceive;
-import skeleton.server.ServerSend;
-import skeleton.server.Server;
+import skeleton.server.fake.Server;
 
 import static java.lang.Thread.sleep;
 
